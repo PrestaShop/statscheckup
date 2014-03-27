@@ -35,7 +35,7 @@ class StatsCheckUp extends Module
 	{
 		$this->name = 'statscheckup';
 		$this->tab = 'analytics_stats';
-		$this->version = 1.1;
+		$this->version = '1.2';
 		$this->author = 'PrestaShop';
 		$this->need_instance = 0;
 
@@ -43,7 +43,7 @@ class StatsCheckUp extends Module
 
 		$this->displayName = $this->l('Catalog evaluation');
 		$this->description = $this->l('Adds a quick evaluation of your catalog quality to the Stats dashboard.');
-		$this->ps_versions_compliancy = array('min' => '1.5.6.1', 'max' => _PS_VERSION_);
+		$this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
 	}
 
 	public function install()
