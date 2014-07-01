@@ -159,7 +159,7 @@ class StatsCheckUp extends Module
 		<div class="panel-heading">'
 			.$this->displayName.'
 		</div>
-		<form action="'.AdminController::$currentIndex.'&token='.Tools::safeOutput(Tools::getValue('token')).'&module='.$this->name.'" method="post" class="checkup form-horizontal">
+		<form action="'.Tools::safeOutput(AdminController::$currentIndex.'&token='.Tools::getValue('token').'&module='.$this->name).'" method="post" class="checkup form-horizontal">
 			<table class="table checkup">
 				<thead>
 					<tr>
@@ -200,7 +200,7 @@ class StatsCheckUp extends Module
 				<i class="icon-save"></i> '.$this->l('Save').'
 			</button> 
 		</form>
-		<form action="'.AdminController::$currentIndex.'&token='.Tools::safeOutput(Tools::getValue('token')).'&module='.$this->name.'" method="post" class="form-horizontal alert">
+		<form action="'.Tools::safeOutput(AdminController::$currentIndex.'&token='.Tools::getValue('token').'&module='.$this->name).'" method="post" class="form-horizontal alert">
 			<div class="row">
 				<div class="col-lg-12">
 					<label class="control-label pull-left">'.$this->l('Order by').'</label>
@@ -262,7 +262,7 @@ class StatsCheckUp extends Module
 			$this->html .= '
 				<tr>
 					<td>'.$row['id_product'].'</td>
-					<td><a href="index.php?tab=AdminProducts&updateproduct&id_product='.$row['id_product'].'&token='.$token_products.'">'.Tools::substr($row['name'], 0, 42).'</a></td>
+					<td><a href="'.Tools::safeOutput('index.php?tab=AdminProducts&updateproduct&id_product='.$row['id_product'].'&token='.$token_products).'">'.Tools::substr($row['name'], 0, 42).'</a></td>
 					<td class="center">'.$array_colors[$scores['active']].'</td>';
 				foreach ($languages as $language)
 					if (isset($row['desclength_'.$language['iso_code']]))
