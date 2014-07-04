@@ -252,9 +252,13 @@ class StatsCheckUp extends Module
 				WHERE id_product = '.(int)$row['id_product'].Shop::addSqlRestrictionOnLang('pl'));
 			foreach ($descriptions as $description)
 			{
-				$row['desclength_'.$description['iso_code']] = Tools::strlen(strip_tags($description['description']));
-				$scores['description_'.$description['iso_code']] = ($row['desclength_'.$description['iso_code']] < Configuration::get('CHECKUP_DESCRIPTIONS_LT') ? 0 : ($row['desclength_'.$description['iso_code']] > Configuration::get('CHECKUP_DESCRIPTIONS_GT') ? 2 : 1));
-				$totals['description_'.$description['iso_code']] += $scores['description_'.$description['iso_code']];
+				if (isset($description['iso_code']) && isset($description['description']))
+					$row['desclength_'.$description['iso_code']] = Tools::strlen(strip_tags($description['description']));
+				if (isset($description['iso_code']))
+				{
+					$scores['description_'.$description['iso_code']] = ($row['desclength_'.$description['iso_code']] < Configuration::get('CHECKUP_DESCRIPTIONS_LT') ? 0 : ($row['desclength_'.$description['iso_code']] > Configuration::get('CHECKUP_DESCRIPTIONS_GT') ? 2 : 1));
+					$totals['description_'.$description['iso_code']] += $scores['description_'.$description['iso_code']];
+				}
 			}
 			$scores['average'] = array_sum($scores) / $divisor;
 			$scores['average'] = ($scores['average'] < 1 ? 0 : ($scores['average'] > 1.5 ? 2 : 1));
