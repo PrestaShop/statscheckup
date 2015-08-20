@@ -30,6 +30,7 @@ if (!defined('_PS_VERSION_'))
 class StatsCheckUp extends Module
 {
 	private $html = '';
+	private $employeeFilters;
 
 	public function __construct()
 	{
@@ -44,6 +45,11 @@ class StatsCheckUp extends Module
 		$this->displayName = $this->l('Catalog evaluation');
 		$this->description = $this->l('Adds a quick evaluation of your catalog quality to the Stats dashboard.');
 		$this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
+
+		$this->employeeFilters = $this->context->cookie;
+        if (version_compare(_PS_VERSION_, '1.7.0', '>=')) {
+            $this->employeeFilters = $this->context->employee->filters;
+        }
 	}
 
 	public function install()
@@ -85,12 +91,12 @@ class StatsCheckUp extends Module
 
 		if (Tools::isSubmit('submitCheckupOrder'))
 		{
-			$this->context->cookie->checkup_order = (int)Tools::getValue('submitCheckupOrder');
+			$this->employeeFilters->checkup_order = (int)Tools::getValue('submitCheckupOrder');
 			echo '<div class="conf confirm"> '.$this->l('Configuration updated').'</div>';
 		}
 
-		if (!isset($this->context->cookie->checkup_order))
-			$this->context->cookie->checkup_order = 1;
+		if (!isset($this->employeeFilters->checkup_order))
+			$this->employeeFilters->checkup_order = 1;
 
 		$db = Db::getInstance(_PS_USE_SQL_SLAVE_);
 		$employee = Context::getContext()->employee;
@@ -117,9 +123,9 @@ class StatsCheckUp extends Module
 		}
 
 		$order_by = 'p.id_product';
-		if ($this->context->cookie->checkup_order == 2)
+		if ($this->employeeFilters->checkup_order == 2)
 			$order_by = 'pl.name';
-		else if ($this->context->cookie->checkup_order == 3)
+		else if ($this->employeeFilters->checkup_order == 3)
 			$order_by = 'nbSales DESC';
 
 		// Get products stats
@@ -207,8 +213,8 @@ class StatsCheckUp extends Module
 					<div class="col-lg-3">
 						<select name="submitCheckupOrder" onchange="this.form.submit();">
 							<option value="1">'.$this->l('ID').'</option>
-							<option value="2" '.($this->context->cookie->checkup_order == 2 ? 'selected="selected"' : '').'>'.$this->l('Name').'</option>
-							<option value="3" '.($this->context->cookie->checkup_order == 3 ? 'selected="selected"' : '').'>'.$this->l('Sales').'</option>
+							<option value="2" '.($this->employeeFilters->checkup_order == 2 ? 'selected="selected"' : '').'>'.$this->l('Name').'</option>
+							<option value="3" '.($this->employeeFilters->checkup_order == 3 ? 'selected="selected"' : '').'>'.$this->l('Sales').'</option>
 						</select>
 					</div>
 				</div>
