@@ -198,7 +198,7 @@ class StatsCheckUp extends Module
 			$this->html .= '</table>
 			<button type="submit" name="submitCheckup" class="btn btn-default pull-right">
 				<i class="icon-save"></i> '.$this->l('Save').'
-			</button> 
+			</button>
 		</form>
 		<form action="'.Tools::safeOutput(AdminController::$currentIndex.'&token='.Tools::getValue('token').'&module='.$this->name).'" method="post" class="form-horizontal alert">
 			<div class="row">
@@ -252,10 +252,8 @@ class StatsCheckUp extends Module
 				WHERE id_product = '.(int)$row['id_product'].Shop::addSqlRestrictionOnLang('pl'));
 			foreach ($descriptions as $description)
 			{
-				if (isset($description['iso_code']) && isset($description['description']))
+				if (isset($description['iso_code']) && isset($description['description'])) {
 					$row['desclength_'.$description['iso_code']] = Tools::strlen(strip_tags($description['description']));
-				if (isset($description['iso_code']))
-				{
 					$scores['description_'.$description['iso_code']] = ($row['desclength_'.$description['iso_code']] < Configuration::get('CHECKUP_DESCRIPTIONS_LT') ? 0 : ($row['desclength_'.$description['iso_code']] > Configuration::get('CHECKUP_DESCRIPTIONS_GT') ? 2 : 1));
 					$totals['description_'.$description['iso_code']] += $scores['description_'.$description['iso_code']];
 				}
