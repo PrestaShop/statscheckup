@@ -127,23 +127,28 @@ class StatsCheckUp extends Module
 					SELECT COUNT(*)
 					FROM '._DB_PREFIX_.'image i
 					'.Shop::addSqlAssociation('image', 'i').'
-					WHERE i.id_product = p.id_product AND p.state = ' . Product::STATE_SAVED . '
-				) as nbImages, (
-					SELECT SUM(od.product_quantity)
-					FROM '._DB_PREFIX_.'orders o
-					LEFT JOIN '._DB_PREFIX_.'order_detail od ON o.id_order = od.id_order
-					WHERE od.product_id = p.id_product
-						AND o.invoice_date BETWEEN '.ModuleGraph::getDateBetween().'
-						'.Shop::addSqlRestriction(Shop::SHARE_ORDER, 'o').'
+					WHERE i.id_product = p.id_product ';
+		if (version_compare(_PS_VERSION_, '1.7.0.0', '>=')) {
+			$sql .= 'AND p.state = ' . Product::STATE_SAVED . ' ';
+		}
+		$sql .= ') as nbImages, (
+				SELECT SUM(od.product_quantity)
+				FROM '._DB_PREFIX_.'orders o
+				LEFT JOIN '._DB_PREFIX_.'order_detail od ON o.id_order = od.id_order
+				WHERE od.product_id = p.id_product
+					AND o.invoice_date BETWEEN '.ModuleGraph::getDateBetween().'
+					'.Shop::addSqlRestriction(Shop::SHARE_ORDER, 'o').'
 				) as nbSales,
 				IFNULL(stock.quantity, 0) as stock
 				FROM '._DB_PREFIX_.'product p
 				'.Shop::addSqlAssociation('product', 'p').'
 				'.Product::sqlStock('p', 0).'
 				LEFT JOIN '._DB_PREFIX_.'product_lang pl
-					ON (p.id_product = pl.id_product AND pl.id_lang = '.(int)$this->context->language->id.Shop::addSqlRestrictionOnLang('pl').')
-                			WHERE p.state = '. Product::STATE_SAVED . '
-				ORDER BY '.$order_by;
+				ON (p.id_product = pl.id_product AND pl.id_lang = '.(int)$this->context->language->id.Shop::addSqlRestrictionOnLang('pl').')';
+		if (version_compare(_PS_VERSION_, '1.7.0.0', '>=')) {
+			$sql .= 'WHERE p.state = '. Product::STATE_SAVED . ' ';
+		}
+		$sql .= 'ORDER BY '.$order_by;
 		$result = $db->executeS($sql);
 
 		if (!$result)
