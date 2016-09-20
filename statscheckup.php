@@ -142,7 +142,7 @@ class StatsCheckUp extends Module
 				'.Product::sqlStock('p', 0).'
 				LEFT JOIN '._DB_PREFIX_.'product_lang pl
 					ON (p.id_product = pl.id_product AND pl.id_lang = '.(int)$this->context->language->id.Shop::addSqlRestrictionOnLang('pl').')
-                WHERE p.state = '. Product::STATE_SAVED . '
+                			WHERE p.state = '. Product::STATE_SAVED . '
 				ORDER BY '.$order_by;
 		$result = $db->executeS($sql);
 
