@@ -127,7 +127,7 @@ class StatsCheckUp extends Module
 					SELECT COUNT(*)
 					FROM '._DB_PREFIX_.'image i
 					'.Shop::addSqlAssociation('image', 'i').'
-					WHERE i.id_product = p.id_product
+					WHERE i.id_product = p.id_product AND p.state = ' . Product::STATE_SAVED . '
 				) as nbImages, (
 					SELECT SUM(od.product_quantity)
 					FROM '._DB_PREFIX_.'orders o
@@ -142,6 +142,7 @@ class StatsCheckUp extends Module
 				'.Product::sqlStock('p', 0).'
 				LEFT JOIN '._DB_PREFIX_.'product_lang pl
 					ON (p.id_product = pl.id_product AND pl.id_lang = '.(int)$this->context->language->id.Shop::addSqlRestrictionOnLang('pl').')
+                			WHERE p.state = '. Product::STATE_SAVED . '
 				ORDER BY '.$order_by;
 		$result = $db->executeS($sql);
 
