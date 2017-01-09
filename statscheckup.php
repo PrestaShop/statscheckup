@@ -36,15 +36,15 @@ class statscheckup extends Module
     {
         $this->name = 'statscheckup';
         $this->tab = 'analytics_stats';
-        $this->version = '1.4.0';
+        $this->version = '2.0.0';
         $this->author = 'PrestaShop';
         $this->need_instance = 0;
 
         parent::__construct();
 
-        $this->displayName = $this->l('Catalog evaluation');
-        $this->description = $this->l('Adds a quick evaluation of your catalog quality to the Stats dashboard.');
-        $this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
+        $this->displayName = $this->trans('Catalog evaluation', array(), 'Modules.Statscheckup.Admin');
+        $this->description = $this->trans('Adds a quick evaluation of your catalog quality to the Stats dashboard.', array(), 'Modules.Statscheckup.Admin');
+        $this->ps_versions_compliancy = array('min' => '1.7.0.0', 'max' => _PS_VERSION_);
     }
 
     public function install()
@@ -83,12 +83,12 @@ class statscheckup extends Module
             foreach ($confs as $confname) {
                 Configuration::updateValue($confname, (int)Tools::getValue($confname));
             }
-            echo '<div class="conf confirm"> '.$this->l('Configuration updated').'</div>';
+            echo '<div class="conf confirm"> '.$this->trans('Settings updated', array(), 'Admin.Global').'</div>';
         }
 
         if (Tools::isSubmit('submitCheckupOrder')) {
             $this->context->cookie->checkup_order = (int)Tools::getValue('submitCheckupOrder');
-            echo '<div class="conf confirm"> '.$this->l('Configuration updated').'</div>';
+            echo '<div class="conf confirm"> '.$this->trans('Settings updated', array(), 'Admin.Global').'</div>';
         }
 
         if (!isset($this->context->cookie->checkup_order)) {
@@ -106,9 +106,9 @@ class statscheckup extends Module
         $languages = $db->executeS($sql);
 
         $array_colors = array(
-            0 => '<img src="../modules/'.$this->name.'/img/red.png" alt="'.$this->l('Bad').'" />',
-            1 => '<img src="../modules/'.$this->name.'/img/orange.png" alt="'.$this->l('Average').'" />',
-            2 => '<img src="../modules/'.$this->name.'/img/green.png" alt="'.$this->l('Good').'" />'
+            0 => '<img src="../modules/'.$this->name.'/img/red.png" alt="'.$this->trans('Bad', array(), 'Modules.Statscheckup.Admin').'" />',
+            1 => '<img src="../modules/'.$this->name.'/img/orange.png" alt="'.$this->trans('Average', array(), 'Modules.Statscheckup.Admin').'" />',
+            2 => '<img src="../modules/'.$this->name.'/img/green.png" alt="'.$this->trans('Good', array(), 'Modules.Statscheckup.Admin').'" />'
         );
         $token_products = Tools::getAdminToken('AdminProducts'.(int)Tab::getIdFromClassName('AdminProducts').(int)Context::getContext()->employee->id);
         $divisor = 4;
@@ -149,14 +149,14 @@ class statscheckup extends Module
         $result = $db->executeS($sql);
 
         if (!$result) {
-            return $this->l('No product was found.');
+            return $this->trans('No product was found.', array(), 'Modules.Statscheckup.Admin');
         }
 
         $array_conf = array(
-            'DESCRIPTIONS' => array('name' => $this->l('Descriptions'), 'text' => $this->l('chars (without HTML)')),
-            'IMAGES' => array('name' => $this->l('Images'), 'text' => $this->l('images')),
-            'SALES' => array('name' => $this->l('Sales'), 'text' => $this->l('orders / month')),
-            'STOCK' => array('name' => $this->l('Available quantity for sale'), 'text' => $this->l('items'))
+            'DESCRIPTIONS' => array('name' => $this->trans('Descriptions', array(), 'Modules.Statscheckup.Admin'), 'text' => $this->trans('chars (without HTML)', array(), 'Modules.Statscheckup.Admin')),
+            'IMAGES' => array('name' => $this->trans('Images', array(), 'Admin.Global'), 'text' => $this->trans('images', array(), 'Admin.Global')),
+            'SALES' => array('name' => $this->trans('Sales', array(), 'Admin.Global'), 'text' => $this->trans('orders / month', array(), 'Modules.Statscheckup.Admin')),
+            'STOCK' => array('name' => $this->trans('Available quantity for sale', array(), 'Admin.Global'))
         );
 
         $this->html = '
@@ -168,8 +168,8 @@ class statscheckup extends Module
 				<thead>
 					<tr>
 						<th></th>
-						<th><span class="title_box active">'.$array_colors[0].' '.$this->l('Not enough').'</span></th>
-						<th><span class="title_box active">'.$array_colors[2].' '.$this->l('Alright').'</span></th>
+						<th><span class="title_box active">'.$array_colors[0].' '.$this->trans('Not enough', array(), 'Modules.Statscheckup.Admin').'</span></th>
+						<th><span class="title_box active">'.$array_colors[2].' '.$this->trans('Alright', array(), 'Modules.Statscheckup.Admin').'</span></th>
 					</tr>
 				</thead>';
         foreach ($array_conf as $conf => $translations) {
@@ -182,7 +182,7 @@ class statscheckup extends Module
 						<td>
 							<div class="row">
 								<div class="col-lg-11 input-group">
-									<span class="input-group-addon">'.$this->l('Less than').'</span>
+									<span class="input-group-addon">'.$this->trans('Less than', array(), 'Modules.Statscheckup.Admin').'</span>
 									<input type="text" name="CHECKUP_'.$conf.'_LT" value="'.Tools::safeOutput(Tools::getValue('CHECKUP_'.$conf.'_LT', Configuration::get('CHECKUP_'.$conf.'_LT'))).'" />
 									<span class="input-group-addon">'.$translations['text'].'</span>
 								 </div>
@@ -191,7 +191,7 @@ class statscheckup extends Module
 						<td>
 							<div class="row">
 								<div class="col-lg-12 input-group">
-									<span class="input-group-addon">'.$this->l('Greater than').'</span>
+									<span class="input-group-addon">'.$this->trans('Greater than', array(), 'Modules.Statscheckup.Admin').'</span>
 									<input type="text" name="CHECKUP_'.$conf.'_GT" value="'.Tools::safeOutput(Tools::getValue('CHECKUP_'.$conf.'_GT', Configuration::get('CHECKUP_'.$conf.'_GT'))).'" />
 									<span class="input-group-addon">'.$translations['text'].'</span>
 								 </div>
@@ -202,18 +202,18 @@ class statscheckup extends Module
         }
         $this->html .= '</table>
 			<button type="submit" name="submitCheckup" class="btn btn-default pull-right">
-				<i class="icon-save"></i> '.$this->l('Save').'
+				<i class="icon-save"></i> '.$this->trans('Save', array(), 'Admin.Actions').'
 			</button> 
 		</form>
 		<form action="'.Tools::safeOutput(AdminController::$currentIndex.'&token='.Tools::getValue('token').'&module='.$this->name).'" method="post" class="form-horizontal alert">
 			<div class="row">
 				<div class="col-lg-12">
-					<label class="control-label pull-left">'.$this->l('Order by').'</label>
+					<label class="control-label pull-left">'.$this->trans('Order by', array(), 'Modules.Statscheckup.Admin').'</label>
 					<div class="col-lg-3">
 						<select name="submitCheckupOrder" onchange="this.form.submit();">
-							<option value="1">'.$this->l('ID').'</option>
-							<option value="2" '.($this->context->cookie->checkup_order == 2 ? 'selected="selected"' : '').'>'.$this->l('Name').'</option>
-							<option value="3" '.($this->context->cookie->checkup_order == 3 ? 'selected="selected"' : '').'>'.$this->l('Sales').'</option>
+							<option value="1">'.$this->trans('ID', array(), 'Admin.Global').'</option>
+							<option value="2" '.($this->context->cookie->checkup_order == 2 ? 'selected="selected"' : '').'>'.$this->trans('Name', array(), 'Admin.Global').'</option>
+							<option value="3" '.($this->context->cookie->checkup_order == 3 ? 'selected="selected"' : '').'>'.$this->trans('Sales', array(), 'Admin.Global').'</option>
 						</select>
 					</div>
 				</div>
@@ -223,17 +223,17 @@ class statscheckup extends Module
 		<table class="table checkup2">
 			<thead>
 				<tr>
-					<th><span class="title_box active">'.$this->l('ID').'</span></th>
-					<th><span class="title_box active">'.$this->l('Item').'</span></th>
-					<th class="center"><span class="title_box active">'.$this->l('Active').'</span></th>';
+					<th><span class="title_box active">'.$this->trans('ID', array(), 'Admin.Global').'</span></th>
+					<th><span class="title_box active">'.$this->trans('Item', array(), 'Admin.Global').'</span></th>
+					<th class="center"><span class="title_box active">'.$this->trans('Active', array(), 'Admin.Global').'</span></th>';
         foreach ($languages as $language) {
-            $this->html .= '<th><span class="title_box active">'.$this->l('Desc.').' ('.Tools::strtoupper($language['iso_code']).')</span></th>';
+            $this->html .= '<th><span class="title_box active">'.$this->trans('Desc.', array(), 'Modules.Statscheckup.Admin').' ('.Tools::strtoupper($language['iso_code']).')</span></th>';
         }
         $this->html .= '
-					<th class="center"><span class="title_box active">'.$this->l('Images').'</span></th>
-					<th class="center"><span class="title_box active">'.$this->l('Sales').'</span></th>
-					<th class="center"><span class="title_box active">'.$this->l('Available quantity for sale').'</span></th>
-					<th class="center"><span class="title_box active">'.$this->l('Global').'</span></th>
+					<th class="center"><span class="title_box active">'.$this->trans('Images', array(), 'Admin.Global').'</span></th>
+					<th class="center"><span class="title_box active">'.$this->trans('Sales', array(), 'Admin.Global').'</span></th>
+					<th class="center"><span class="title_box active">'.$this->trans('Available quantity for sale', array(), 'Admin.Global').'</span></th>
+					<th class="center"><span class="title_box active">'.$this->trans('Global', array(), 'Modules.Statscheckup.Admin').'</span></th>
 				</tr>
 			</thead>
 			<tbody>';
@@ -308,15 +308,15 @@ class statscheckup extends Module
 			<tfoot>
 				<tr>
 					<th colspan="2"></th>
-					<th class="center"><span class="title_box active">'.$this->l('Active').'</span></th>';
+					<th class="center"><span class="title_box active">'.$this->trans('Active', array(), 'Admin.Global').'</span></th>';
         foreach ($languages as $language) {
-            $this->html .= '<th class="center"><span class="title_box active">'.$this->l('Desc.').' ('.Tools::strtoupper($language['iso_code']).')</span></th>';
+            $this->html .= '<th class="center"><span class="title_box active">'.$this->trans('Desc.', array(), 'Modules.Statscheckup.Admin').' ('.Tools::strtoupper($language['iso_code']).')</span></th>';
         }
         $this->html .= '
-					<th class="center"><span class="title_box active">'.$this->l('Images').'</span></th>
-					<th class="center"><span class="title_box active">'.$this->l('Sales').'</span></th>
-					<th class="center"><span class="title_box active">'.$this->l('Available quantity for sale').'</span></th>
-					<th class="center"><span class="title_box active">'.$this->l('Global').'</span></th>
+					<th class="center"><span class="title_box active">'.$this->trans('Images', array(), 'Admin.Global').'</span></th>
+					<th class="center"><span class="title_box active">'.$this->trans('Sales', array(), 'Admin.Global').'</span></th>
+					<th class="center"><span class="title_box active">'.$this->trans('Available quantity for sale', array(), 'Admin.Global').'</span></th>
+					<th class="center"><span class="title_box active">'.$this->trans('Global', array(), 'Modules.Statscheckup.Admin').'</span></th>
 				</tr>
 				<tr>
 					<td colspan="2"></td>
