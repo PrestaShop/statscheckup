@@ -44,7 +44,7 @@ class statscheckup extends Module
 
         $this->displayName = $this->trans('Catalog evaluation', array(), 'Modules.Statscheckup.Admin');
         $this->description = $this->trans('Adds a quick evaluation of your catalog quality to the Stats dashboard.', array(), 'Modules.Statscheckup.Admin');
-        $this->ps_versions_compliancy = array('min' => '1.7.0.0', 'max' => _PS_VERSION_);
+        $this->ps_versions_compliancy = array('min' => '1.7.1.0', 'max' => _PS_VERSION_);
     }
 
     public function install()
