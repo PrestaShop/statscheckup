@@ -35,7 +35,7 @@ class StatsCheckUp extends Module
 	{
 		$this->name = 'statscheckup';
 		$this->tab = 'analytics_stats';
-		$this->version = '1.4.0';
+		$this->version = '1.5.0';
 		$this->author = 'PrestaShop';
 		$this->need_instance = 0;
 
