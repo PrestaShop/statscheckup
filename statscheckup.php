@@ -269,10 +269,11 @@ class StatsCheckUp extends Module
 			$scores['average'] = array_sum($scores) / $divisor;
 			$scores['average'] = ($scores['average'] < 1 ? 0 : ($scores['average'] > 1.5 ? 2 : 1));
 
+			$urlParams = array('id_product' => $row['id_product'], 'updateproduct' => 1, 'token' => $token_products);
 			$this->html .= '
 				<tr>
 					<td>'.$row['id_product'].'</td>
-					<td><a href="'.Tools::safeOutput('index.php?tab=AdminProducts&updateproduct&id_product='.$row['id_product'].'&token='.$token_products).'">'.Tools::substr($row['name'], 0, 42).'</a></td>
+					<td><a href="'.Tools::safeOutput(preg_replace("/\\?.*$/", '?tab=AdminProducts&updateproduct&id_product='.$row['id_product'].'&token='.$token_products, $this->context->link->getAdminLink('AdminProducts', true, $urlParams))).'">'.Tools::substr($row['name'], 0, 42).'</a></td>
 					<td class="center">'.$array_colors[$scores['active']].'</td>';
 				foreach ($languages as $language)
 					if (isset($row['desclength_'.$language['iso_code']]))
