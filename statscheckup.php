@@ -52,6 +52,8 @@ class statscheckup extends Module
         $confs = array(
             'CHECKUP_DESCRIPTIONS_LT' => 100,
             'CHECKUP_DESCRIPTIONS_GT' => 400,
+            'CHECKUP_SHORT_DESCRIPTIONS_LT' => 25,
+            'CHECKUP_SHORT_DESCRIPTIONS_GT' => 100,
             'CHECKUP_IMAGES_LT' => 1,
             'CHECKUP_IMAGES_GT' => 2,
             'CHECKUP_SALES_LT' => 1,
@@ -64,7 +66,12 @@ class statscheckup extends Module
                 Configuration::updateValue($confname, (int)$confdefault);
             }
         }
-        return (parent::install() && $this->registerHook('AdminStatsModules'));
+        return (parent::install() && $this->registerHook('AdminStatsModules') && $this->registerHook('actionAdminControllerSetMedia'));
+    }
+
+    public function hookActionAdminControllerSetMedia()
+    {
+        $this->context->controller->addJS($this->_path.'js/statscheckup.js', 'all');
     }
 
     public function hookAdminStatsModules()
@@ -73,6 +80,8 @@ class statscheckup extends Module
             $confs = array(
                 'CHECKUP_DESCRIPTIONS_LT',
                 'CHECKUP_DESCRIPTIONS_GT',
+                'CHECKUP_SHORT_DESCRIPTIONS_LT',
+                'CHECKUP_SHORT_DESCRIPTIONS_GT',
                 'CHECKUP_IMAGES_LT',
                 'CHECKUP_IMAGES_GT',
                 'CHECKUP_SALES_LT',
@@ -154,9 +163,10 @@ class statscheckup extends Module
 
         $array_conf = array(
             'DESCRIPTIONS' => array('name' => $this->trans('Descriptions', array(), 'Modules.Statscheckup.Admin'), 'text' => $this->trans('chars (without HTML)', array(), 'Modules.Statscheckup.Admin')),
+            'SHORT_DESCRIPTIONS' => array('name' => $this->trans('Short descriptions', array(), 'Modules.Statscheckup.Admin'), 'text' => $this->trans('chars (without HTML)', array(), 'Modules.Statscheckup.Admin')),
             'IMAGES' => array('name' => $this->trans('Images', array(), 'Admin.Global'), 'text' => $this->trans('images', array(), 'Admin.Global')),
             'SALES' => array('name' => $this->trans('Sales', array(), 'Admin.Global'), 'text' => $this->trans('orders / month', array(), 'Modules.Statscheckup.Admin')),
-            'STOCK' => array('name' => $this->trans('Available quantity for sale', array(), 'Admin.Global'))
+            'STOCK' => array('name' => $this->trans('Available quantity for sale', array(), 'Admin.Global'), 'text' => strtolower($this->trans('Quantity', array(), 'Admin.Global')))
         );
 
         $this->html = '
@@ -167,6 +177,7 @@ class statscheckup extends Module
 			<table class="table checkup">
 				<thead>
 					<tr>
+						<th>'.$this->trans('Visibility', array(), 'Modules.Statscheckup.Admin').'</th>
 						<th></th>
 						<th><span class="title_box active">'.$array_colors[0].' '.$this->trans('Not enough', array(), 'Modules.Statscheckup.Admin').'</span></th>
 						<th><span class="title_box active">'.$array_colors[2].' '.$this->trans('Alright', array(), 'Modules.Statscheckup.Admin').'</span></th>
@@ -176,6 +187,9 @@ class statscheckup extends Module
             $this->html .= '
 				<tbody>
 					<tr>
+					    <td>
+					    <i class="icon-eye toggle-show pointer" data-target="'.strtolower($conf).'" aria-hidden="true"> </i>
+						</td>
 						<td>
 							<label class="control-label col-lg-12">'.$translations['name'].'</label>
 						</td>
@@ -227,12 +241,14 @@ class statscheckup extends Module
 					<th><span class="title_box active">'.$this->trans('Item', array(), 'Admin.Global').'</span></th>
 					<th class="center"><span class="title_box active">'.$this->trans('Active', array(), 'Admin.Global').'</span></th>';
         foreach ($languages as $language) {
-            $this->html .= '<th><span class="title_box active">'.$this->trans('Desc.', array(), 'Modules.Statscheckup.Admin').' ('.Tools::strtoupper($language['iso_code']).')</span></th>';
+            $this->html .= '<th data-showtarget="descriptions"><span class="title_box active">'.$this->trans('Desc.', array(), 'Modules.Statscheckup.Admin').' ('.Tools::strtoupper($language['iso_code']).')</span></th>';
+            $this->html .= '<th data-showtarget="short_descriptions"><span class="title_box active">'.$this->trans('Short desc.', array(), 'Modules.Statscheckup.Admin').' ('.Tools::strtoupper($language['iso_code']).')</span></th>';
         }
+
         $this->html .= '
-					<th class="center"><span class="title_box active">'.$this->trans('Images', array(), 'Admin.Global').'</span></th>
-					<th class="center"><span class="title_box active">'.$this->trans('Sales', array(), 'Admin.Global').'</span></th>
-					<th class="center"><span class="title_box active">'.$this->trans('Available quantity for sale', array(), 'Admin.Global').'</span></th>
+					<th class="center" data-showtarget="images"><span class="title_box active">'.$this->trans('Images', array(), 'Admin.Global').'</span></th>
+					<th class="center" data-showtarget="sales"><span class="title_box active">'.$this->trans('Sales', array(), 'Admin.Global').'</span></th>
+					<th class="center" data-showtarget="stock"><span class="title_box active">'.$this->trans('Available quantity for sale', array(), 'Admin.Global').'</span></th>
 					<th class="center"><span class="title_box active">'.$this->trans('Global', array(), 'Modules.Statscheckup.Admin').'</span></th>
 				</tr>
 			</thead>
@@ -250,20 +266,29 @@ class statscheckup extends Module
             $totals['sales'] += (int)$scores['sales'];
             $totals['stock'] += (int)$scores['stock'];
             $descriptions = $db->executeS('
-				SELECT l.iso_code, pl.description
+				SELECT l.iso_code, pl.description, pl.description_short
 				FROM '._DB_PREFIX_.'product_lang pl
 				LEFT JOIN '._DB_PREFIX_.'lang l
 					ON pl.id_lang = l.id_lang
 				WHERE id_product = '.(int)$row['id_product'].Shop::addSqlRestrictionOnLang('pl'));
+
             foreach ($descriptions as $description) {
                 if (isset($description['iso_code']) && isset($description['description'])) {
                     $row['desclength_'.$description['iso_code']] = Tools::strlen(strip_tags($description['description']));
                 }
+                if (isset($description['iso_code']) && isset($description['description_short'])) {
+                    $row['shortdesclength_'.$description['iso_code']] = Tools::strlen(strip_tags($description['description_short']));
+                }
+
                 if (isset($description['iso_code'])) {
                     $scores['description_'.$description['iso_code']] = ($row['desclength_'.$description['iso_code']] < Configuration::get('CHECKUP_DESCRIPTIONS_LT') ? 0 : ($row['desclength_'.$description['iso_code']] > Configuration::get('CHECKUP_DESCRIPTIONS_GT') ? 2 : 1));
                     $totals['description_'.$description['iso_code']] += $scores['description_'.$description['iso_code']];
+
+                    $scores['shortdescription_'.$description['iso_code']] = ($row['shortdesclength_'.$description['iso_code']] < Configuration::get('CHECKUP_SHORT_DESCRIPTIONS_LT') ? 0 : ($row['shortdesclength_'.$description['iso_code']] > Configuration::get('CHECKUP_SHORT_DESCRIPTIONS_GT') ? 2 : 1));
+                    $totals['shortdescription_'.$description['iso_code']] += $scores['shortdescription_'.$description['iso_code']];
                 }
             }
+
             $scores['average'] = array_sum($scores) / $divisor;
             $scores['average'] = ($scores['average'] < 1 ? 0 : ($scores['average'] > 1.5 ? 2 : 1));
 
@@ -272,18 +297,26 @@ class statscheckup extends Module
 					<td>'.$row['id_product'].'</td>
 					<td><a href="'.Tools::safeOutput('index.php?tab=AdminProducts&updateproduct&id_product='.$row['id_product'].'&token='.$token_products).'">'.Tools::substr($row['name'], 0, 42).'</a></td>
 					<td class="center">'.$array_colors[$scores['active']].'</td>';
+
             foreach ($languages as $language) {
                 if (isset($row['desclength_'.$language['iso_code']])) {
-                    $this->html .= '<td class="center">'.(int)$row['desclength_'.$language['iso_code']].' '.$array_colors[$scores['description_'.$language['iso_code']]].'</td>';
+                    $this->html .= '<td class="center" data-showtarget="descriptions">'.(int)$row['desclength_'.$language['iso_code']].' '.$array_colors[$scores['description_'.$language['iso_code']]].'</td>';
                 } else {
-                    $this->html .= '<td>0 '.$array_colors[0].'</td>';
+                    $this->html .= '<td data-showtarget="descriptions">0 '.$array_colors[0].'</td>';
+                }
+
+                if (isset($row['shortdesclength_'.$language['iso_code']])) {
+                    $this->html .= '<td class="center" data-showtarget="short_descriptions">'.(int)$row['shortdesclength_'.$language['iso_code']].' '.$array_colors[$scores['shortdescription_'.$language['iso_code']]].'</td>';
+                } else {
+                    $this->html .= '<td data-showtarget="short_descriptions">0 '.$array_colors[0].'</td>';
                 }
             }
+
             $this->html .= '
-					<td class="center">'.(int)$row['nbImages'].' '.$array_colors[$scores['images']].'</td>
-					<td class="center">'.(int)$row['nbSales'].' '.$array_colors[$scores['sales']].'</td>
-					<td class="center">'.(int)$row['stock'].' '.$array_colors[$scores['stock']].'</td>
-					<td class="center">'.$array_colors[$scores['average']].'</td>
+					<td class="center" data-showtarget="images">'.(int)$row['nbImages'].' '.$array_colors[$scores['images']].'</td>
+					<td class="center" data-showtarget="sales">'.(int)$row['nbSales'].' '.$array_colors[$scores['sales']].'</td>
+					<td class="center" data-showtarget="stock">'.(int)$row['stock'].' '.$array_colors[$scores['stock']].'</td>
+					<td class="center" >'.$array_colors[$scores['average']].'</td>
 				</tr>';
         }
 
@@ -297,10 +330,15 @@ class statscheckup extends Module
         $totals['sales'] = ($totals['sales'] < 1 ? 0 : ($totals['sales'] > 1.5 ? 2 : 1));
         $totals['stock'] = $totals['stock'] / $totals['products'];
         $totals['stock'] = ($totals['stock'] < 1 ? 0 : ($totals['stock'] > 1.5 ? 2 : 1));
+
         foreach ($languages as $language) {
             $totals['description_'.$language['iso_code']] = $totals['description_'.$language['iso_code']] / $totals['products'];
             $totals['description_'.$language['iso_code']] = ($totals['description_'.$language['iso_code']] < 1 ? 0 : ($totals['description_'.$language['iso_code']] > 1.5 ? 2 : 1));
+
+            $totals['shortdescription_'.$language['iso_code']] = $totals['shortdescription_'.$language['iso_code']] / $totals['products'];
+            $totals['shortdescription_'.$language['iso_code']] = ($totals['shortdescription_'.$language['iso_code']] < 1 ? 0 : ($totals['shortdescription_'.$language['iso_code']] > 1.5 ? 2 : 1));
         }
+
         $totals['average'] = array_sum($totals) / $divisor;
         $totals['average'] = ($totals['average'] < 1 ? 0 : ($totals['average'] > 1.5 ? 2 : 1));
 
@@ -309,25 +347,32 @@ class statscheckup extends Module
 				<tr>
 					<th colspan="2"></th>
 					<th class="center"><span class="title_box active">'.$this->trans('Active', array(), 'Admin.Global').'</span></th>';
+
         foreach ($languages as $language) {
-            $this->html .= '<th class="center"><span class="title_box active">'.$this->trans('Desc.', array(), 'Modules.Statscheckup.Admin').' ('.Tools::strtoupper($language['iso_code']).')</span></th>';
+            $this->html .= '<th class="center" data-showtarget="descriptions"><span class="title_box active">'.$this->trans('Desc.', array(), 'Modules.Statscheckup.Admin').' ('.Tools::strtoupper($language['iso_code']).')</span></th>';
+
+            $this->html .= '<th class="center" data-showtarget="short_descriptions"><span class="title_box active">'.$this->trans('Short desc.', array(), 'Modules.Statscheckup.Admin').' ('.Tools::strtoupper($language['iso_code']).')</span></th>';
         }
+
         $this->html .= '
-					<th class="center"><span class="title_box active">'.$this->trans('Images', array(), 'Admin.Global').'</span></th>
-					<th class="center"><span class="title_box active">'.$this->trans('Sales', array(), 'Admin.Global').'</span></th>
-					<th class="center"><span class="title_box active">'.$this->trans('Available quantity for sale', array(), 'Admin.Global').'</span></th>
+					<th class="center" data-showtarget="images"><span class="title_box active">'.$this->trans('Images', array(), 'Admin.Global').'</span></th>
+					<th class="center" data-showtarget="sales"><span class="title_box active">'.$this->trans('Sales', array(), 'Admin.Global').'</span></th>
+					<th class="center" data-showtarget="stock"><span class="title_box active">'.$this->trans('Available quantity for sale', array(), 'Admin.Global').'</span></th>
 					<th class="center"><span class="title_box active">'.$this->trans('Global', array(), 'Modules.Statscheckup.Admin').'</span></th>
 				</tr>
 				<tr>
 					<td colspan="2"></td>
 					<td class="center">'.$array_colors[$totals['active']].'</td>';
+
         foreach ($languages as $language) {
-            $this->html .= '<td class="center">'.$array_colors[$totals['description_'.$language['iso_code']]].'</td>';
+            $this->html .= '<td class="center" data-showtarget="descriptions">'.$array_colors[$totals['description_'.$language['iso_code']]].'</td>';
+            $this->html .= '<td class="center" data-showtarget="short_descriptions">'.$array_colors[$totals['shortdescription_'.$language['iso_code']]].'</td>';
         }
+
         $this->html .= '
-					<td class="center">'.$array_colors[$totals['images']].'</td>
-					<td class="center">'.$array_colors[$totals['sales']].'</td>
-					<td class="center">'.$array_colors[$totals['stock']].'</td>
+					<td class="center" data-showtarget="images">'.$array_colors[$totals['images']].'</td>
+					<td class="center" data-showtarget="sales">'.$array_colors[$totals['sales']].'</td>
+					<td class="center" data-showtarget="stock">'.$array_colors[$totals['stock']].'</td>
 					<td class="center">'.$array_colors[$totals['average']].'</td>
 				</tr>
 			</tfoot>
