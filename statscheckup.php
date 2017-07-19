@@ -49,7 +49,18 @@ class statscheckup extends Module
 
     public function install()
     {
-        $confs = array(
+        $confs = $this->getConfigurationModule();
+        foreach ($confs as $confname => $confdefault) {
+            if (!Configuration::get($confname)) {
+                Configuration::updateValue($confname, (int)$confdefault);
+            }
+        }
+        return (parent::install() && $this->registerHook('AdminStatsModules') && $this->registerHook('actionAdminControllerSetMedia'));
+    }
+
+    private function getConfigurationModule()
+    {
+        return array(
             'CHECKUP_DESCRIPTIONS_LT' => 100,
             'CHECKUP_DESCRIPTIONS_GT' => 400,
             'CHECKUP_SHORT_DESCRIPTIONS_LT' => 25,
@@ -61,13 +72,12 @@ class statscheckup extends Module
             'CHECKUP_STOCK_LT' => 1,
             'CHECKUP_STOCK_GT' => 1,
             'CHECKUP_REFERENCE' => true,
+            'CHECKUP_PRICE' => true,
+            'CHECKUP_WIDTH' => true,
+            'CHECKUP_HEIGHT' => true,
+            'CHECKUP_DEPTH' => true,
+            'CHECKUP_WEIGHT' => true,
         );
-        foreach ($confs as $confname => $confdefault) {
-            if (!Configuration::get($confname)) {
-                Configuration::updateValue($confname, (int)$confdefault);
-            }
-        }
-        return (parent::install() && $this->registerHook('AdminStatsModules') && $this->registerHook('actionAdminControllerSetMedia'));
     }
 
     public function hookActionAdminControllerSetMedia()
@@ -111,20 +121,8 @@ class statscheckup extends Module
         $displayConfirmation = '';
 
         if (Tools::isSubmit('submitCheckup')) {
-            $confs = array(
-                'CHECKUP_DESCRIPTIONS_LT',
-                'CHECKUP_DESCRIPTIONS_GT',
-                'CHECKUP_SHORT_DESCRIPTIONS_LT',
-                'CHECKUP_SHORT_DESCRIPTIONS_GT',
-                'CHECKUP_IMAGES_LT',
-                'CHECKUP_IMAGES_GT',
-                'CHECKUP_SALES_LT',
-                'CHECKUP_SALES_GT',
-                'CHECKUP_STOCK_LT',
-                'CHECKUP_STOCK_GT',
-                'CHECKUP_REFERENCE',
-            );
-            foreach ($confs as $confname) {
+            $confs = $this->getConfigurationModule();
+            foreach ($confs as $confname => $confdefault) {
                 Configuration::updateValue($confname, (int)Tools::getValue($confname));
             }
             $displayConfirmation .= $this->displayConfirmation($this->trans('The settings have been updated.', array(), 'Admin.Notifications.Success'));
@@ -139,24 +137,30 @@ class statscheckup extends Module
     }
 
     /**
+     * @param $array_conf <=> $this->initConfigurationEvaluation()
      * @return array
      */
-    private function initTotalsEvaluation()
+    private function initTotalsEvaluation($array_conf)
     {
         $totals = array(
             'products' => 0,
-            'active' => 0,
-            'images' => 0,
-            'sales' => 0,
-            'stock' => 0,
-            'reference' => 0,
+            'active' => 0
         );
 
         $languages = Language::getLanguages();
 
         foreach ($languages as $language) {
-            $totals['description_'.$language['iso_code']] = 0;
-            $totals['description_short_'.$language['iso_code']] = 0;
+            foreach ($array_conf as $conf) {
+                if (isset($conf['language'])) {
+                    $totals[$conf['table']['target'].'_'.$language['iso_code']] = 0;
+                }
+            }
+        }
+
+        foreach ($array_conf as $conf) {
+            if (!isset($conf['language'])) {
+                $totals[$conf['table']['target']] = 0;
+            }
         }
 
         return $totals;
@@ -176,6 +180,7 @@ class statscheckup extends Module
                     'target' => 'description',
                     'title' => $this->trans('Desc.', array(), 'Modules.Statscheckup.Admin'),
                     'countable' => true,
+                    'show' => true,
                 )
             ),
             'SHORT_DESCRIPTIONS' => array(
@@ -186,6 +191,7 @@ class statscheckup extends Module
                     'target' => 'description_short',
                     'title' => $this->trans('Short desc.', array(), 'Modules.Statscheckup.Admin'),
                     'countable' => true,
+                    'show' => true,
                 )
             ),
             'IMAGES' => array(
@@ -195,6 +201,7 @@ class statscheckup extends Module
                     'target' => 'images',
                     'title' => $this->trans('Images', array(), 'Admin.Global'),
                     'countable' => true,
+                    'show' => true,
                 )
             ),
             'SALES' => array(
@@ -205,6 +212,7 @@ class statscheckup extends Module
                     'target' => 'sales',
                     'title' => $this->trans('Sales', array(), 'Admin.Global'),
                     'countable' => true,
+                    'show' => true,
                 )
             ),
             'STOCK' => array(
@@ -214,6 +222,7 @@ class statscheckup extends Module
                     'target' => 'stock',
                     'title' => $this->trans('Available quantity for sale', array(), 'Admin.Global'),
                     'countable' => true,
+                    'show' => true,
                 )
             ),
             'REFERENCE' => array(
@@ -222,6 +231,48 @@ class statscheckup extends Module
                 'table' => array(
                     'target' => 'reference',
                     'title' => $this->trans('Reference', array(), 'Admin.Global'),
+                    'show' => true,
+                )
+            ),
+            'PRICE' => array(
+                'type' => 'switch',
+                'name' => $this->trans('Price', array(), 'Admin.Global'),
+                'table' => array(
+                    'target' => 'price',
+                    'title' => $this->trans('Price', array(), 'Admin.Global'),
+                    'show' => true,
+                )
+            ),
+            'WIDTH' => array(
+                'type' => 'switch',
+                'name' => $this->trans('Width', array(), 'Admin.Global'),
+                'table' => array(
+                    'target' => 'width',
+                    'title' => $this->trans('Width', array(), 'Admin.Global'),
+                )
+            ),
+            'HEIGHT' => array(
+                'type' => 'switch',
+                'name' => $this->trans('Height', array(), 'Admin.Global'),
+                'table' => array(
+                    'target' => 'height',
+                    'title' => $this->trans('Height', array(), 'Admin.Global'),
+                )
+            ),
+            'DEPTH' => array(
+                'type' => 'switch',
+                'name' => $this->trans('Depth', array(), 'Admin.Global'),
+                'table' => array(
+                    'target' => 'depth',
+                    'title' => $this->trans('Depth', array(), 'Admin.Global'),
+                )
+            ),
+            'WEIGHT' => array(
+                'type' => 'switch',
+                'name' => $this->trans('Weight', array(), 'Admin.Global'),
+                'table' => array(
+                    'target' => 'weight',
+                    'title' => $this->trans('Weight', array(), 'Admin.Global'),
                 )
             ),
         );
@@ -250,10 +301,10 @@ class statscheckup extends Module
         if ($this->context->cookie->checkup_order == 2) {
             $order_by = 'pl.name';
         } elseif ($this->context->cookie->checkup_order == 3) {
-            $order_by = 'nbSales DESC';
+            $order_by = 'sales DESC';
         }
 
-        $sql = 'SELECT p.id_product, p.reference, product_shop.active, pl.name, (
+        $sql = 'SELECT p.id_product, p.reference, product_shop.active, pl.name, p.price, p.width, p.height, p.depth, p.weight, (
                 SELECT COUNT(*)
                 FROM '._DB_PREFIX_.'image i
                 '.Shop::addSqlAssociation('image', 'i').'
@@ -303,7 +354,7 @@ class statscheckup extends Module
 				<tbody>
 					<tr>
 					    <td>
-					        <i class="icon-eye toggle-show pointer" data-target="'.strtolower($conf).'" aria-hidden="true"> </i>
+					        <i class="' . (empty($translations['table']['show']) ? 'icon-eye-slash' : 'icon-eye') . ' toggle-show pointer" data-target="'.strtolower($conf).'" aria-hidden="true"> </i>
 						</td>
 						<td>
 							<label class="control-label col-lg-12">'.$translations['name'].'</label>
@@ -398,7 +449,7 @@ class statscheckup extends Module
         foreach ($languages as $language) {
             foreach ($array_conf as $conf) {
                 if (isset($conf['language'])) {
-                    $columnTitle .= '<th class="center" data-showtarget="'.$conf['table']['target'].'">
+                    $columnTitle .= '<th class="center ' . (empty($conf['table']['show']) ? 'hidden' : '') . '" data-showtarget="'.$conf['table']['target'].'">
                         <span class="title_box active">'.$conf['table']['title'].' ('.Tools::strtoupper($language['iso_code']).')</span>
                     </th>';
                 }
@@ -407,7 +458,7 @@ class statscheckup extends Module
 
         foreach ($array_conf as $conf) {
             if (!isset($conf['language'])) {
-                $columnTitle .= '<th class="center" data-showtarget="'.$conf['table']['target'].'">
+                $columnTitle .= '<th class="center ' . (empty($conf['table']['show']) ? 'hidden' : '') . '" data-showtarget="'.$conf['table']['target'].'">
                     <span class="title_box active">'.$conf['table']['title'].'</span>
                 </th>';
             }
@@ -424,7 +475,7 @@ class statscheckup extends Module
 
         $array_colors = $this->getArrayColor();
 
-        $totals = $this->initTotalsEvaluation();
+        $totals = $this->initTotalsEvaluation($array_conf);
 
         $columnTitle = $this->showColumnTitle($array_conf);
 
@@ -459,7 +510,7 @@ class statscheckup extends Module
                 foreach ($languages as $language) {
                     foreach ($array_conf as $conf) {
                         if (isset($conf['language'])) {
-                            $return .= '<td class="center" data-showtarget="'.$conf['table']['target'].'">' .
+                            $return .= '<td class="center ' . (empty($conf['table']['show']) ? 'hidden' : '') . '" data-showtarget="'.$conf['table']['target'].'">' .
                                 (!empty($conf['table']['countable']) ? (int)$row[$conf['table']['target'].'_'.$language['iso_code']] : '') .
                                 ' ' . $array_colors[$scores[$conf['table']['target'].'_'.$language['iso_code']]] .
                             '</td>';
@@ -469,7 +520,7 @@ class statscheckup extends Module
 
                 foreach ($array_conf as $conf) {
                     if (!isset($conf['language'])) {
-                        $return .= '<td class="center" data-showtarget="'.$conf['table']['target'].'">' .
+                        $return .= '<td class="center ' . (empty($conf['table']['show']) ? 'hidden' : '') . '" data-showtarget="'.$conf['table']['target'].'">' .
                             (!empty($conf['table']['countable']) ? (int)$row[$conf['table']['target']] : '') .
                             ' ' . $array_colors[$scores[$conf['table']['target']]] .
                         '</td>';
@@ -501,7 +552,7 @@ class statscheckup extends Module
                     foreach ($languages as $language) {
                         foreach ($array_conf as $conf) {
                             if (isset($conf['language'])) {
-                                $return .= '<td class="center" data-showtarget="'.$conf['table']['target'].'">' .
+                                $return .= '<td class="center ' . (empty($conf['table']['show']) ? 'hidden' : '') . '" data-showtarget="'.$conf['table']['target'].'">' .
                                     $array_colors[$totals[$conf['table']['target'].'_'.$language['iso_code']]] .
                                 '</td>';
                             }
@@ -510,7 +561,7 @@ class statscheckup extends Module
 
                     foreach ($array_conf as $conf) {
                         if (!isset($conf['language'])) {
-                            $return .= '<td class="center" data-showtarget="'.$conf['table']['target'].'">' .
+                            $return .= '<td class="center ' . (empty($conf['table']['show']) ? 'hidden' : '') . '" data-showtarget="'.$conf['table']['target'].'">' .
                                 $array_colors[$totals['images']] .
                             '</td>';
                         }
@@ -545,6 +596,11 @@ class statscheckup extends Module
             'sales' => (($row['sales'] * $prop30 < Configuration::get('CHECKUP_SALES_LT')) ? 0 : (($row['sales'] * $prop30 > Configuration::get('CHECKUP_SALES_GT')) ? 2 : 1)),
             'stock' => (($row['stock'] < Configuration::get('CHECKUP_STOCK_LT')) ? 0 : (($row['stock'] > Configuration::get('CHECKUP_STOCK_GT')) ? 2 : 1)),
             'reference' => ((bool)$row['reference'] == (bool)Configuration::get('CHECKUP_REFERENCE') ? 2 : 0),
+            'price' => ((bool)(int)$row['price'] == (bool)Configuration::get('CHECKUP_PRICE') ? 2 : 0),
+            'width' => ((bool)(int)$row['width'] == (bool)Configuration::get('CHECKUP_WIDTH') ? 2 : 0),
+            'height' => ((bool)(int)$row['height'] == (bool)Configuration::get('CHECKUP_HEIGHT') ? 2 : 0),
+            'depth' => ((bool)(int)$row['depth'] == (bool)Configuration::get('CHECKUP_DEPTH') ? 2 : 0),
+            'weight' => ((bool)(int)$row['weight'] == (bool)Configuration::get('CHECKUP_WEIGHT') ? 2 : 0),
         );
 
         $descriptions = $db->executeS('
