@@ -73,6 +73,7 @@ class statscheckup extends Module
             'CHECKUP_STOCK_GT' => 1,
             'CHECKUP_REFERENCE' => true,
             'CHECKUP_PRICE' => true,
+            'CHECKUP_WHOLESALE_PRICE' => true,
             'CHECKUP_WIDTH' => true,
             'CHECKUP_HEIGHT' => true,
             'CHECKUP_DEPTH' => true,
@@ -243,6 +244,15 @@ class statscheckup extends Module
                     'show' => true,
                 )
             ),
+            'WHOLESALE_PRICE' => array(
+                'type' => 'switch',
+                'name' => $this->trans('Wholesale price', array(), 'Admin.Global'),
+                'table' => array(
+                    'target' => 'wholesale_price',
+                    'title' => $this->trans('Wholesale price', array(), 'Admin.Global'),
+                    'show' => true,
+                )
+            ),
             'WIDTH' => array(
                 'type' => 'switch',
                 'name' => $this->trans('Width', array(), 'Admin.Global'),
@@ -304,7 +314,9 @@ class statscheckup extends Module
             $order_by = 'sales DESC';
         }
 
-        $sql = 'SELECT p.id_product, p.reference, product_shop.active, pl.name, p.price, p.width, p.height, p.depth, p.weight, (
+        $sql = 'SELECT p.id_product, p.reference, product_shop.active, pl.name, 
+          p.price, p.wholesale_price, p.width, p.height, p.depth, p.weight, 
+          (
                 SELECT COUNT(*)
                 FROM '._DB_PREFIX_.'image i
                 '.Shop::addSqlAssociation('image', 'i').'
@@ -597,6 +609,7 @@ class statscheckup extends Module
             'stock' => (($row['stock'] < Configuration::get('CHECKUP_STOCK_LT')) ? 0 : (($row['stock'] > Configuration::get('CHECKUP_STOCK_GT')) ? 2 : 1)),
             'reference' => ((bool)$row['reference'] == (bool)Configuration::get('CHECKUP_REFERENCE') ? 2 : 0),
             'price' => ((bool)(int)$row['price'] == (bool)Configuration::get('CHECKUP_PRICE') ? 2 : 0),
+            'wholesale_price' => ((bool)(int)$row['wholesale_price'] == (bool)Configuration::get('CHECKUP_WHOLESALE_PRICE') ? 2 : 0),
             'width' => ((bool)(int)$row['width'] == (bool)Configuration::get('CHECKUP_WIDTH') ? 2 : 0),
             'height' => ((bool)(int)$row['height'] == (bool)Configuration::get('CHECKUP_HEIGHT') ? 2 : 0),
             'depth' => ((bool)(int)$row['depth'] == (bool)Configuration::get('CHECKUP_DEPTH') ? 2 : 0),
