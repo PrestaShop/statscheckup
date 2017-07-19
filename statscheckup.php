@@ -78,6 +78,9 @@ class statscheckup extends Module
             'CHECKUP_HEIGHT' => true,
             'CHECKUP_DEPTH' => true,
             'CHECKUP_WEIGHT' => true,
+            'CHECKUP_ISBN' => true,
+            'CHECKUP_EAN13' => true,
+            'CHECKUP_UPC' => true,
         );
     }
 
@@ -285,6 +288,30 @@ class statscheckup extends Module
                     'title' => $this->trans('Weight', array(), 'Admin.Global'),
                 )
             ),
+            'ISBN' => array(
+                'type' => 'switch',
+                'name' => $this->trans('ISBN', array(), 'Admin.Global'),
+                'table' => array(
+                    'target' => 'isbn',
+                    'title' => $this->trans('ISBN', array(), 'Admin.Global'),
+                )
+            ),
+            'EAN13' => array(
+                'type' => 'switch',
+                'name' => $this->trans('EAN 13', array(), 'Admin.Global'),
+                'table' => array(
+                    'target' => 'ean13',
+                    'title' => $this->trans('EAN 13', array(), 'Admin.Global'),
+                )
+            ),
+            'UPC' => array(
+                'type' => 'switch',
+                'name' => $this->trans('UPC', array(), 'Admin.Global'),
+                'table' => array(
+                    'target' => 'upc',
+                    'title' => $this->trans('UPC', array(), 'Admin.Global'),
+                )
+            ),
         );
     }
 
@@ -316,6 +343,7 @@ class statscheckup extends Module
 
         $sql = 'SELECT p.id_product, p.reference, product_shop.active, pl.name, 
           p.price, p.wholesale_price, p.width, p.height, p.depth, p.weight, 
+          p.isbn, p.ean13, p.upc,
           (
                 SELECT COUNT(*)
                 FROM '._DB_PREFIX_.'image i
@@ -498,11 +526,9 @@ class statscheckup extends Module
 					<th><span class="title_box active">'.$this->trans('ID', array(), 'Admin.Global').'</span></th>
 					<th><span class="title_box active">'.$this->trans('Item', array(), 'Admin.Global').'</span></th>
 					<th class="center"><span class="title_box active">'.$this->trans('Active', array(), 'Admin.Global').'</span></th>';
-
                     $return .= $columnTitle;
-
-                    $return .= '<th class="center"><span class="title_box active">'.$this->trans('Global', array(), 'Modules.Statscheckup.Admin').'</span></th>
-				</tr>
+//                    $return .= '<th class="center"><span class="title_box active">'.$this->trans('Global', array(), 'Modules.Statscheckup.Admin').'</span></th>';
+                $return .= '</tr>
 			</thead>
 			<tbody>';
 
@@ -539,8 +565,8 @@ class statscheckup extends Module
                     }
                 }
 
-                $return .= '<td class="center" >'.$array_colors[$scores['average']].'</td>
-            </tr>';
+//                $return .= '<td class="center" >'.$array_colors[$scores['average']].'</td>';
+            $return .= '</tr>';
         }
 
         $return .= '</tbody>';
@@ -552,11 +578,9 @@ class statscheckup extends Module
 				<tr>
 					<th colspan="2"></th>
 					<th class="center"><span class="title_box active">'.$this->trans('Active', array(), 'Admin.Global').'</span></th>';
-
                     $return .= $columnTitle;
-
-					$return .= '<th class="center"><span class="title_box active">'.$this->trans('Global', array(), 'Modules.Statscheckup.Admin').'</span></th>
-				</tr>
+//					$return .= '<th class="center"><span class="title_box active">'.$this->trans('Global', array(), 'Modules.Statscheckup.Admin').'</span></th>';
+                $return .= '</tr>
 				<tr>
 					<td colspan="2"></td>
 					<td class="center">'.$array_colors[$totals['active']].'</td>';
@@ -579,8 +603,8 @@ class statscheckup extends Module
                         }
                     }
 
-					$return .= '<td class="center">'.$array_colors[$totals['average']].'</td>
-				</tr>
+//					$return .= '<td class="center">'.$array_colors[$totals['average']].'</td>';
+                $return .= '</tr>
 			</tfoot>
 		</table></div>';
 
@@ -614,6 +638,9 @@ class statscheckup extends Module
             'height' => ((bool)(int)$row['height'] == (bool)Configuration::get('CHECKUP_HEIGHT') ? 2 : 0),
             'depth' => ((bool)(int)$row['depth'] == (bool)Configuration::get('CHECKUP_DEPTH') ? 2 : 0),
             'weight' => ((bool)(int)$row['weight'] == (bool)Configuration::get('CHECKUP_WEIGHT') ? 2 : 0),
+            'isbn' => ((bool)$row['isbn'] == (bool)Configuration::get('CHECKUP_ISBN') ? 2 : 0),
+            'ean13' => ((bool)$row['ean13'] == (bool)Configuration::get('CHECKUP_EAN13') ? 2 : 0),
+            'upc' => ((bool)$row['upc'] == (bool)Configuration::get('CHECKUP_UPC') ? 2 : 0),
         );
 
         $descriptions = $db->executeS('
