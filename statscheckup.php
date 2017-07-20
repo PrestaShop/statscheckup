@@ -65,6 +65,10 @@ class statscheckup extends Module
             'CHECKUP_DESCRIPTIONS_GT' => 400,
             'CHECKUP_SHORT_DESCRIPTIONS_LT' => 25,
             'CHECKUP_SHORT_DESCRIPTIONS_GT' => 100,
+            'CHECKUP_META_TITLE_LT' => 5,
+            'CHECKUP_META_TITLE_GT' => 20,
+            'CHECKUP_META_DESCRIPTION_LT' => 10,
+            'CHECKUP_META_DESCRIPTION_GT' => 80,
             'CHECKUP_IMAGES_LT' => 1,
             'CHECKUP_IMAGES_GT' => 2,
             'CHECKUP_SALES_LT' => 1,
@@ -199,6 +203,28 @@ class statscheckup extends Module
                 'table' => array(
                     'target' => 'description_short',
                     'title' => $this->trans('Short desc.', array(), 'Modules.Statscheckup.Admin'),
+                    'countable' => true,
+                    'show' => true,
+                )
+            ),
+            'META_TITLE' => array(
+                'name' => $this->trans('Meta title', array(), 'Admin.Catalog.Feature'),
+                'text' => $this->trans('chars (without HTML)', array(), 'Modules.Statscheckup.Admin'),
+                'language' => true,
+                'table' => array(
+                    'target' => 'meta_title',
+                    'title' => $this->trans('Meta title.', array(), 'Admin.Catalog.Feature'),
+                    'countable' => true,
+                    'show' => true,
+                )
+            ),
+            'META_DESCRIPTION' => array(
+                'name' => $this->trans('Meta description', array(), 'Admin.Catalog.Feature'),
+                'text' => $this->trans('chars (without HTML)', array(), 'Modules.Statscheckup.Admin'),
+                'language' => true,
+                'table' => array(
+                    'target' => 'meta_description',
+                    'title' => $this->trans('Meta description', array(), 'Admin.Catalog.Feature'),
                     'countable' => true,
                     'show' => true,
                 )
@@ -692,27 +718,31 @@ class statscheckup extends Module
         );
 
         $descriptions = $db->executeS('
-            SELECT l.iso_code, pl.description, pl.description_short
+            SELECT l.iso_code, pl.description, pl.description_short, pl.meta_title, pl.meta_description
             FROM '._DB_PREFIX_.'product_lang pl
             LEFT JOIN '._DB_PREFIX_.'lang l
                 ON pl.id_lang = l.id_lang
             WHERE id_product = '.(int)$row['id_product'].Shop::addSqlRestrictionOnLang('pl'));
 
+        $fields = array(
+            'description' => 'CHECKUP_DESCRIPTIONS',
+            'description_short' => 'CHECKUP_SHORT_DESCRIPTIONS',
+            'meta_title' => 'CHECKUP_META_TITLE',
+            'meta_description' => 'CHECKUP_META_DESCRIPTION',
+        );
+
         foreach ($descriptions as $description) {
-            if (isset($description['iso_code']) && isset($description['description'])) {
-                $row['description_'.$description['iso_code']] = Tools::strlen(strip_tags($description['description']));
-            }
-            if (isset($description['iso_code']) && isset($description['description_short'])) {
-                $row['description_short_'.$description['iso_code']] = Tools::strlen(strip_tags($description['description_short']));
+            if (!isset($description['iso_code'])) {
+                continue;
             }
 
-            if (isset($description['iso_code'])) {
-                $scores['description_'.$description['iso_code']] = ($row['description_'.$description['iso_code']] < Configuration::get('CHECKUP_DESCRIPTIONS_LT')
-                    ? 0 : ($row['description_'.$description['iso_code']] > Configuration::get('CHECKUP_DESCRIPTIONS_GT')
-                        ? 2 : 1));
+            foreach ($fields as $key => $field) {
+                if (isset($description[$key])) {
+                    $row[$key.'_'.$description['iso_code']] = Tools::strlen(strip_tags($description[$key]));
+                }
 
-                $scores['description_short_'.$description['iso_code']] = ($row['description_short_'.$description['iso_code']] < Configuration::get('CHECKUP_SHORT_DESCRIPTIONS_LT')
-                    ? 0 : ($row['description_short_'.$description['iso_code']] > Configuration::get('CHECKUP_SHORT_DESCRIPTIONS_GT')
+                $scores[$key.'_'.$description['iso_code']] = ($row[$key.'_'.$description['iso_code']] < Configuration::get($field.'_LT')
+                    ? 0 : ($row[$key.'_'.$description['iso_code']] > Configuration::get($field.'_GT')
                         ? 2 : 1));
             }
         }
