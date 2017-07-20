@@ -24,8 +24,28 @@
  */
 
 $(document).ready(function() {
+
+  $('a.checkup-configuration').on('click', function() {
+    if ("true" === $(this).data('open')) {
+      $('table.checkup > tbody > tr').removeClass('hidden');
+      $('table.checkup > tbody > tr.grised-td').addClass('hidden');
+
+      $(this).html($(this).data('expand'));
+      $(this).data('open', 'false');
+    } else {
+      $('table.checkup > tbody > tr').removeClass('hidden');
+
+      $(this).html($(this).data('collapse'));
+      $(this).data('open', 'true');
+    }
+  });
+
   $('input.toggle-show').on('click', function() {
     let target = $(this).data('target');
+    let tr = $(this).closest('tr');
+
+    tr.toggleClass('grised-td');
+    tr.find('input:not(.toggle-show)').attr('disabled', !$(this).is(':checked'));
 
     $('[data-showtarget="'+target+'"]').toggleClass('hidden');
   });

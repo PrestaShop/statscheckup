@@ -50,6 +50,17 @@ class statscheckup extends Module
     public function install()
     {
         $confs = $this->getConfigurationModule();
+        // default checkup show
+         $confs = array_merge($confs, array(
+            'SHOW_DESCRIPTIONS' => true,
+            'SHOW_SHORT_DESCRIPTIONS' => true,
+            'SHOW_IMAGES' => true,
+            'SHOW_SALES' => true,
+            'SHOW_STOCK' => true,
+            'SHOW_REFERENCE' => true,
+            'SHOW_PRICE' => true,
+        ));
+
         foreach ($confs as $confname => $confdefault) {
             if (!Configuration::get($confname)) {
                 Configuration::updateValue($confname, (int)$confdefault);
@@ -104,6 +115,7 @@ class statscheckup extends Module
 
     public function hookActionAdminControllerSetMedia()
     {
+        $this->context->controller->addCSS($this->_path.'css/statscheckup.css', 'all');
         $this->context->controller->addJS($this->_path.'js/statscheckup.js', 'all');
     }
 
@@ -145,7 +157,17 @@ class statscheckup extends Module
         if (Tools::isSubmit('submitCheckup')) {
             $confs = $this->getConfigurationModule();
             foreach ($confs as $confname => $confdefault) {
-                Configuration::updateValue($confname, (int)Tools::getValue($confname));
+                if (isset($_POST[$confname])) {
+                    Configuration::updateValue($confname, (int)Tools::getValue($confname));
+                }
+            }
+
+            // update show_ configuration
+            $resetShow = $this->initConfigurationEvaluation();
+            $shows = Tools::getValue('show_configuration');
+            foreach ($resetShow as $key => $name) {
+                $key = 'SHOW_'.$key;
+                Configuration::updateValue($key, (bool)!empty($shows[$key]));
             }
             $displayConfirmation .= $this->displayConfirmation($this->trans('The settings have been updated.', array(), 'Admin.Notifications.Success'));
         }
@@ -193,7 +215,7 @@ class statscheckup extends Module
      */
     private function initConfigurationEvaluation()
     {
-        return array(
+        $array_conf = array(
             'DESCRIPTIONS' => array(
                 'name' => $this->trans('Description', array(), 'Admin.Catalog.Feature'),
                 'text' => $this->trans('chars (without HTML)', array(), 'Modules.Statscheckup.Admin'),
@@ -202,7 +224,6 @@ class statscheckup extends Module
                     'target' => 'description',
                     'title' => $this->trans('Desc.', array(), 'Modules.Statscheckup.Admin'),
                     'countable' => true,
-                    'show' => true,
                 )
             ),
             'SHORT_DESCRIPTIONS' => array(
@@ -213,7 +234,50 @@ class statscheckup extends Module
                     'target' => 'description_short',
                     'title' => $this->trans('Short desc.', array(), 'Modules.Statscheckup.Admin'),
                     'countable' => true,
-                    'show' => true,
+                )
+            ),
+            'IMAGES' => array(
+                'name' => $this->trans('Images', array(), 'Admin.Catalog.Feature'),
+                'text' => $this->trans('images', array(), 'Admin.Catalog.Feature'),
+                'table' => array(
+                    'target' => 'images',
+                    'title' => $this->trans('Images', array(), 'Admin.Catalog.Feature'),
+                    'countable' => true,
+                )
+            ),
+            'SALES' => array(
+                'name' => $this->trans('Sales', array(), 'Admin.Global'),
+                'text' => $this->trans('orders / month', array(), 'Modules.Statscheckup.Admin'),
+                'countable' => true,
+                'table' => array(
+                    'target' => 'sales',
+                    'title' => $this->trans('Sales', array(), 'Admin.Global'),
+                    'countable' => true,
+                )
+            ),
+            'STOCK' => array(
+                'name' => $this->trans('Available quantity for sale', array(), 'Admin.Global'),
+                'text' => strtolower($this->trans('Quantity', array(), 'Admin.Global')),
+                'table' => array(
+                    'target' => 'stock',
+                    'title' => $this->trans('Available quantity for sale', array(), 'Admin.Global'),
+                    'countable' => true,
+                )
+            ),
+            'REFERENCE' => array(
+                'type' => 'switch',
+                'name' => $this->trans('Reference', array(), 'Admin.Catalog.Feature'),
+                'table' => array(
+                    'target' => 'reference',
+                    'title' => $this->trans('Reference', array(), 'Admin.Catalog.Feature'),
+                )
+            ),
+            'PRICE' => array(
+                'type' => 'switch',
+                'name' => $this->trans('Price', array(), 'Admin.Catalog.Feature'),
+                'table' => array(
+                    'target' => 'price',
+                    'title' => $this->trans('Price', array(), 'Admin.Catalog.Feature'),
                 )
             ),
             'META_TITLE' => array(
@@ -234,16 +298,6 @@ class statscheckup extends Module
                     'target' => 'meta_description',
                     'title' => $this->trans('Meta description', array(), 'Admin.Catalog.Feature'),
                     'countable' => true,
-                )
-            ),
-            'IMAGES' => array(
-                'name' => $this->trans('Images', array(), 'Admin.Catalog.Feature'),
-                'text' => $this->trans('images', array(), 'Admin.Catalog.Feature'),
-                'table' => array(
-                    'target' => 'images',
-                    'title' => $this->trans('Images', array(), 'Admin.Catalog.Feature'),
-                    'countable' => true,
-                    'show' => true,
                 )
             ),
             'FEATURES' => array(
@@ -282,45 +336,7 @@ class statscheckup extends Module
                     'countable' => true,
                 )
             ),
-            'SALES' => array(
-                'name' => $this->trans('Sales', array(), 'Admin.Global'),
-                'text' => $this->trans('orders / month', array(), 'Modules.Statscheckup.Admin'),
-                'countable' => true,
-                'table' => array(
-                    'target' => 'sales',
-                    'title' => $this->trans('Sales', array(), 'Admin.Global'),
-                    'countable' => true,
-                    'show' => true,
-                )
-            ),
-            'STOCK' => array(
-                'name' => $this->trans('Available quantity for sale', array(), 'Admin.Global'),
-                'text' => strtolower($this->trans('Quantity', array(), 'Admin.Global')),
-                'table' => array(
-                    'target' => 'stock',
-                    'title' => $this->trans('Available quantity for sale', array(), 'Admin.Global'),
-                    'countable' => true,
-                    'show' => true,
-                )
-            ),
-            'REFERENCE' => array(
-                'type' => 'switch',
-                'name' => $this->trans('Reference', array(), 'Admin.Catalog.Feature'),
-                'table' => array(
-                    'target' => 'reference',
-                    'title' => $this->trans('Reference', array(), 'Admin.Catalog.Feature'),
-                    'show' => true,
-                )
-            ),
-            'PRICE' => array(
-                'type' => 'switch',
-                'name' => $this->trans('Price', array(), 'Admin.Catalog.Feature'),
-                'table' => array(
-                    'target' => 'price',
-                    'title' => $this->trans('Price', array(), 'Admin.Catalog.Feature'),
-                    'show' => true,
-                )
-            ),
+
             'WHOLESALE_PRICE' => array(
                 'type' => 'switch',
                 'name' => $this->trans('Wholesale price', array(), 'Admin.Catalog.Feature'),
@@ -434,6 +450,12 @@ class statscheckup extends Module
                 )
             ),
         );
+
+        foreach ($array_conf as $key => &$conf) {
+            $conf['table']['show'] = Configuration::get('SHOW_'.$key);
+        }
+
+        return $array_conf;
     }
 
     /**
@@ -535,36 +557,40 @@ class statscheckup extends Module
     private function showConfigurationForm($array_conf, $array_colors)
     {
         $return = '<form action="'.Tools::safeOutput(AdminController::$currentIndex.'&token='.Tools::getValue('token').'&module='.$this->name).'" method="post" class="checkup form-horizontal">
+        <a class="btn btn-default pull-right checkup-configuration" href="#" 
+            data-expand="'.$this->trans('Expand All', array(), 'Admin.Actions').'" 
+            data-collapse="'.$this->trans('Collapse All', array(), 'Admin.Actions').'">
+            <i class="icon-extend"></i> '.$this->trans('Expand All', array(), 'Admin.Actions').'
+        </a>
         <table class="table checkup">
             <thead>
                 <tr>
                     <th>'.$this->trans('Visibility', array(), 'Modules.Statscheckup.Admin').'</th>
                     <th></th>
                     <th><span class="title_box active">'.$array_colors[0].' '.$this->trans('Not enough', array(), 'Modules.Statscheckup.Admin').'</span></th>
-                    <th><span class="title_box active">'.$array_colors[2].' '.$this->trans('Alright', array(), 'Modules.Statscheckup.Admin').'</span></th>
+                    <th><span class="title_box active">'.$array_colors[2].' '.$this->trans('Alright', array(), 'Modules.Statscheckup.Admin').'</span>
                 </tr>
-            </thead>';
+            </thead>
+            <tbody>';
 
         foreach ($array_conf as $conf => $translations) {
-            $return .= '
-				<tbody>
-					<tr>
-					    <td>
-					        <input type="checkbox" ' . (empty($translations['table']['show']) ? '' : 'checked') . ' class="toggle-show pointer" data-target="'.$translations['table']['target'].'">
-						</td>
-						<td>
-							<label class="control-label col-lg-12">'.$translations['name'].'</label>
-						</td>
-						<td>';
+            $return .= '<tr ' . (empty($translations['table']['show']) ? 'class="grised-td hidden"' : '') . '>
+                    <td>
+                        <input name="show_configuration[SHOW_'.$conf.']" value="true" type="checkbox" ' . (empty($translations['table']['show']) ? '' : 'checked="checked"') . ' class="toggle-show pointer" data-target="'.$translations['table']['target'].'">
+                    </td>
+                    <td>
+                        <label class="control-label col-lg-12">'.$translations['name'].'</label>
+                    </td>
+                    <td>';
 
             if (!isset($translations['type']) || $translations['type'] !== 'switch') {
                 $return .= '<div class="row">
-                                    <div class="col-lg-11 input-group">
-                                        <span class="input-group-addon">' . $this->trans('Less than', array(), 'Modules.Statscheckup.Admin') . '</span>
-                                        <input type="text" name="CHECKUP_' . $conf . '_LT" value="' . Tools::safeOutput(Tools::getValue('CHECKUP_' . $conf . '_LT', Configuration::get('CHECKUP_' . $conf . '_LT'))) . '" />
-                                        <span class="input-group-addon">' . $translations['text'] . '</span>
-                                    </div>
-                                </div>';
+                    <div class="col-lg-11 input-group">
+                        <span class="input-group-addon">' . $this->trans('Less than', array(), 'Modules.Statscheckup.Admin') . '</span>
+                        <input ' . (empty($translations['table']['show']) ? 'disabled' : '') . ' type="text" name="CHECKUP_' . $conf . '_LT" value="' . Tools::safeOutput(Tools::getValue('CHECKUP_' . $conf . '_LT', Configuration::get('CHECKUP_' . $conf . '_LT'))) . '" />
+                        <span class="input-group-addon">' . $translations['text'] . '</span>
+                    </div>
+                </div>';
             }
 
             $return .= '</td>
@@ -572,33 +598,34 @@ class statscheckup extends Module
 
             if (isset($translations['type']) && $translations['type'] === 'switch') {
                 $return .= '<span class="switch prestashop-switch fixed-width-lg">
-                                    <input type="radio" name="CHECKUP_' . $conf . '" '.
-                    (Tools::getValue('CHECKUP_' . $conf, Configuration::get('CHECKUP_' . $conf)) === '1' ? 'checked': '').
-                    ' value="1" id="CHECKUP_' . $conf . '_on" >
-                                    <label for="CHECKUP_' . $conf . '_on" class="radioCheck">'.$this->trans('Yes', array(), 'Admin.Global').'</label>
-                
-                                    <input type="radio" name="CHECKUP_' . $conf . '" '.
-                    (Tools::getValue('CHECKUP_' . $conf, Configuration::get('CHECKUP_' . $conf)) === '0' ? 'checked': '').
-                    ' value="0" id="CHECKUP_' . $conf . '_off" >
-                                    <label for="CHECKUP_' . $conf . '_off" class="radioCheck">'.$this->trans('No', array(), 'Admin.Global').'</label>
-                                    <a class="slide-button btn"></a>
-                              </span>';
+                    <input ' . (empty($translations['table']['show']) ? 'disabled' : '') . ' type="radio" name="CHECKUP_' . $conf . '" '.
+    (Tools::getValue('CHECKUP_' . $conf, Configuration::get('CHECKUP_' . $conf)) === '1' ? 'checked="checked"': '').
+    ' value="1" id="CHECKUP_' . $conf . '_on" >
+                    <label for="CHECKUP_' . $conf . '_on" class="radioCheck">'.$this->trans('Yes', array(), 'Admin.Global').'</label>
+
+                    <input ' . (empty($translations['table']['show']) ? 'disabled' : '') . ' type="radio" name="CHECKUP_' . $conf . '" '.
+    (Tools::getValue('CHECKUP_' . $conf, Configuration::get('CHECKUP_' . $conf)) === '0' ? 'checked="checked"': '').
+    ' value="0" id="CHECKUP_' . $conf . '_off" >
+                    <label for="CHECKUP_' . $conf . '_off" class="radioCheck">'.$this->trans('No', array(), 'Admin.Global').'</label>
+                    <a class="slide-button btn"></a>
+                </span>';
             } else {
                 $return .= '<div class="row">
-                                    <div class="col-lg-12 input-group">
-                                        <span class="input-group-addon">' . $this->trans('Greater than', array(), 'Modules.Statscheckup.Admin') . '</span>
-                                        <input type="text" name="CHECKUP_' . $conf . '_GT" value="' . Tools::safeOutput(Tools::getValue('CHECKUP_' . $conf . '_GT', Configuration::get('CHECKUP_' . $conf . '_GT'))) . '" />
-                                        <span class="input-group-addon">' . $translations['text'] . '</span>
-                                     </div>
-                                 </div>';
+                    <div class="col-lg-12 input-group">
+                        <span class="input-group-addon">' . $this->trans('Greater than', array(), 'Modules.Statscheckup.Admin') . '</span>
+                        <input ' . (empty($translations['table']['show']) ? 'disabled' : '') . ' type="text" name="CHECKUP_' . $conf . '_GT" value="' . Tools::safeOutput(Tools::getValue('CHECKUP_' . $conf . '_GT', Configuration::get('CHECKUP_' . $conf . '_GT'))) . '" />
+                        <span class="input-group-addon">' . $translations['text'] . '</span>
+                     </div>
+                 </div>';
             }
 
             $return .= '</td>
-                    </tr>
-                </tbody>';
+                </tr>';
         }
 
-        $return .= '</table>
+        $return .= '
+                </tbody>
+            </table>
 			<button type="submit" name="submitCheckup" class="btn btn-default pull-right">
 				<i class="icon-save"></i> '.$this->trans('Save', array(), 'Admin.Actions').'
             </button>
@@ -818,7 +845,7 @@ class statscheckup extends Module
             FROM '._DB_PREFIX_.'product_lang pl
             LEFT JOIN '._DB_PREFIX_.'lang l
                 ON pl.id_lang = l.id_lang
-            WHERE id_product = '.(int)$row['id_product'].Shop::addSqlRestrictionOnLang('pl'));
+            WHERE l.active = 1 AND id_product = '.(int)$row['id_product'].Shop::addSqlRestrictionOnLang('pl'));
 
         $fields = array(
             'description' => 'CHECKUP_DESCRIPTIONS',
