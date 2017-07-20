@@ -539,7 +539,7 @@ class statscheckup extends Module
 				<tbody>
 					<tr>
 					    <td>
-					        <i class="' . (empty($translations['table']['show']) ? 'icon-eye-slash' : 'icon-eye') . ' toggle-show pointer" data-target="'.$translations['table']['target'].'" aria-hidden="true"> </i>
+					        <input type="checkbox" ' . (empty($translations['table']['show']) ? '' : 'checked') . ' class="toggle-show pointer" data-target="'.$translations['table']['target'].'">
 						</td>
 						<td>
 							<label class="control-label col-lg-12">'.$translations['name'].'</label>
@@ -773,13 +773,13 @@ class statscheckup extends Module
 
         $scores = array(
             'active' => ($row['active'] ? 2 : 0),
-            'images' => ($row['images'] < Configuration::get('CHECKUP_IMAGES_LT') ? 0 : ($row['images'] > Configuration::get('CHECKUP_IMAGES_GT') ? 2 : 1)),
-            'sales' => (($row['sales'] * $prop30 < Configuration::get('CHECKUP_SALES_LT')) ? 0 : (($row['sales'] * $prop30 > Configuration::get('CHECKUP_SALES_GT')) ? 2 : 1)),
-            'stock' => (($row['stock'] < Configuration::get('CHECKUP_STOCK_LT')) ? 0 : (($row['stock'] > Configuration::get('CHECKUP_STOCK_GT')) ? 2 : 1)),
-            'features' => ($row['features'] < Configuration::get('CHECKUP_FEATURES_LT') ? 0 : ($row['features'] > Configuration::get('CHECKUP_FEATURES_GT') ? 2 : 1)),
-            'accessory' => ($row['accessory'] < Configuration::get('CHECKUP_ACCESSORY_LT') ? 0 : ($row['accessory'] > Configuration::get('CHECKUP_ACCESSORY_GT') ? 2 : 1)),
-            'carrier' => ($row['carrier'] < Configuration::get('CHECKUP_CARRIER_LT') ? 0 : ($row['carrier'] > Configuration::get('CHECKUP_CARRIER_GT') ? 2 : 1)),
-            'tags' => ($row['tags'] < Configuration::get('CHECKUP_TAGS_LT') ? 0 : ($row['tags'] > Configuration::get('CHECKUP_TAGS_GT') ? 2 : 1)),
+            'images' => ($row['images'] < Configuration::get('CHECKUP_IMAGES_LT') ? 0 : ($row['images'] >= Configuration::get('CHECKUP_IMAGES_GT') ? 2 : 1)),
+            'sales' => (($row['sales'] * $prop30 < Configuration::get('CHECKUP_SALES_LT')) ? 0 : (($row['sales'] * $prop30 >= Configuration::get('CHECKUP_SALES_GT')) ? 2 : 1)),
+            'stock' => (($row['stock'] < Configuration::get('CHECKUP_STOCK_LT')) ? 0 : (($row['stock'] >= Configuration::get('CHECKUP_STOCK_GT')) ? 2 : 1)),
+            'features' => ($row['features'] < Configuration::get('CHECKUP_FEATURES_LT') ? 0 : ($row['features'] >= Configuration::get('CHECKUP_FEATURES_GT') ? 2 : 1)),
+            'accessory' => ($row['accessory'] < Configuration::get('CHECKUP_ACCESSORY_LT') ? 0 : ($row['accessory'] >= Configuration::get('CHECKUP_ACCESSORY_GT') ? 2 : 1)),
+            'carrier' => ($row['carrier'] < Configuration::get('CHECKUP_CARRIER_LT') ? 0 : ($row['carrier'] >= Configuration::get('CHECKUP_CARRIER_GT') ? 2 : 1)),
+            'tags' => ($row['tags'] < Configuration::get('CHECKUP_TAGS_LT') ? 0 : ($row['tags'] >= Configuration::get('CHECKUP_TAGS_GT') ? 2 : 1)),
 
             'reference' => ((bool)$row['reference'] == (bool)Configuration::get('CHECKUP_REFERENCE') ? 2 : 0),
             'brand' => ((bool)$row['brand'] == (bool)Configuration::get('CHECKUP_BRAND') ? 2 : 0),

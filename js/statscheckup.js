@@ -24,13 +24,8 @@
  */
 
 $(document).ready(function() {
-  $('i.toggle-show').on('click', function() {
+  $('input.toggle-show').on('click', function() {
     let target = $(this).data('target');
-
-    $(this)
-      .removeClass('toggle-show pointer') // needed because icon-eye-x need to be first
-      .toggleClass('icon-eye icon-eye-slash')
-      .addClass('toggle-show pointer');
 
     $('[data-showtarget="'+target+'"]').toggleClass('hidden');
   });
