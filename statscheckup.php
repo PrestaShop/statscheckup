@@ -69,12 +69,18 @@ class statscheckup extends Module
             'CHECKUP_META_TITLE_GT' => 20,
             'CHECKUP_META_DESCRIPTION_LT' => 10,
             'CHECKUP_META_DESCRIPTION_GT' => 80,
-            'CHECKUP_IMAGES_LT' => 1,
-            'CHECKUP_IMAGES_GT' => 2,
-            'CHECKUP_SALES_LT' => 1,
-            'CHECKUP_SALES_GT' => 2,
-            'CHECKUP_STOCK_LT' => 1,
+            'CHECKUP_IMAGES_LT' => 0,
+            'CHECKUP_IMAGES_GT' => 1,
+            'CHECKUP_SALES_LT' => 0,
+            'CHECKUP_SALES_GT' => 1,
+            'CHECKUP_STOCK_LT' => 0,
             'CHECKUP_STOCK_GT' => 1,
+            'CHECKUP_ACCESSORY_LT' => 0,
+            'CHECKUP_ACCESSORY_GT' => 1,
+            'CHECKUP_CARRIERS_LT' => 0,
+            'CHECKUP_CARRIERS_GT' => 1,
+            'CHECKUP_FEATURES_LT' => 0,
+            'CHECKUP_FEATURES_GT' => 1,
             'CHECKUP_REFERENCE' => true,
             'CHECKUP_PRICE' => true,
             'CHECKUP_WHOLESALE_PRICE' => true,
@@ -88,8 +94,6 @@ class statscheckup extends Module
             'CHECKUP_BRAND' => true,
             'CHECKUP_SUPPLIER' => true,
             'CHECKUP_CATEGORY' => true,
-            'CHECKUP_FEATURES_LT' => 1,
-            'CHECKUP_FEATURES_GT' => 2,
         );
     }
 
@@ -215,7 +219,6 @@ class statscheckup extends Module
                     'target' => 'meta_title',
                     'title' => $this->trans('Meta title.', array(), 'Admin.Catalog.Feature'),
                     'countable' => true,
-                    'show' => true,
                 )
             ),
             'META_DESCRIPTION' => array(
@@ -226,7 +229,6 @@ class statscheckup extends Module
                     'target' => 'meta_description',
                     'title' => $this->trans('Meta description', array(), 'Admin.Catalog.Feature'),
                     'countable' => true,
-                    'show' => true,
                 )
             ),
             'IMAGES' => array(
@@ -236,7 +238,34 @@ class statscheckup extends Module
                     'target' => 'images',
                     'title' => $this->trans('Images', array(), 'Admin.Catalog.Feature'),
                     'countable' => true,
-//                    'show' => true,
+                    'show' => true,
+                )
+            ),
+            'FEATURES' => array(
+                'name' => $this->trans('Features', array(), 'Admin.Catalog.Feature'),
+                'text' => $this->trans('Features', array(), 'Admin.Catalog.Feature'),
+                'table' => array(
+                    'target' => 'features',
+                    'title' => $this->trans('Features', array(), 'Admin.Catalog.Feature'),
+                    'countable' => true,
+                )
+            ),
+            'ACCESSORY' => array(
+                'name' => $this->trans('Related product', array(), 'Admin.Catalog.Feature'),
+                'text' => $this->trans('Related product', array(), 'Admin.Catalog.Feature'),
+                'table' => array(
+                    'target' => 'accessory',
+                    'title' => $this->trans('Related product', array(), 'Admin.Catalog.Feature'),
+                    'countable' => true,
+                )
+            ),
+            'CARRIERS' => array(
+                'name' => $this->trans('Carrier', array(), 'Admin.Global'),
+                'text' => $this->trans('Carrier', array(), 'Admin.Global'),
+                'table' => array(
+                    'target' => 'carrier',
+                    'title' => $this->trans('Carrier', array(), 'Admin.Global'),
+                    'countable' => true,
                 )
             ),
             'SALES' => array(
@@ -247,7 +276,7 @@ class statscheckup extends Module
                     'target' => 'sales',
                     'title' => $this->trans('Sales', array(), 'Admin.Global'),
                     'countable' => true,
-//                    'show' => true,
+                    'show' => true,
                 )
             ),
             'STOCK' => array(
@@ -257,7 +286,7 @@ class statscheckup extends Module
                     'target' => 'stock',
                     'title' => $this->trans('Available quantity for sale', array(), 'Admin.Global'),
                     'countable' => true,
-//                    'show' => true,
+                    'show' => true,
                 )
             ),
             'REFERENCE' => array(
@@ -266,7 +295,7 @@ class statscheckup extends Module
                 'table' => array(
                     'target' => 'reference',
                     'title' => $this->trans('Reference', array(), 'Admin.Catalog.Feature'),
-//                    'show' => true,
+                    'show' => true,
                 )
             ),
             'PRICE' => array(
@@ -275,7 +304,7 @@ class statscheckup extends Module
                 'table' => array(
                     'target' => 'price',
                     'title' => $this->trans('Price', array(), 'Admin.Catalog.Feature'),
-//                    'show' => true,
+                    'show' => true,
                 )
             ),
             'WHOLESALE_PRICE' => array(
@@ -308,15 +337,6 @@ class statscheckup extends Module
                 'table' => array(
                     'target' => 'category',
                     'title' => $this->trans('Default category', array(), 'Admin.Catalog.Feature'),
-                )
-            ),
-            'FEATURES' => array(
-                'name' => $this->trans('Features', array(), 'Admin.Catalog.Feature'),
-                'text' => $this->trans('Features', array(), 'Admin.Catalog.Feature'),
-                'table' => array(
-                    'target' => 'features',
-                    'title' => $this->trans('Features', array(), 'Admin.Catalog.Feature'),
-                    'countable' => true,
                 )
             ),
             'WIDTH' => array(
@@ -414,6 +434,16 @@ class statscheckup extends Module
                 '.Shop::addSqlAssociation('image', 'i').'
                 WHERE i.id_product = p.id_product
             ) as images, 
+            (
+                SELECT COUNT(*)
+                FROM '._DB_PREFIX_.'accessory a
+                WHERE a.id_product_1 = p.id_product
+            ) as accessory,
+            (
+                SELECT COUNT(*)
+                FROM '._DB_PREFIX_.'product_carrier pc
+                WHERE pc.id_product = p.id_product
+            ) as carrier,
             (
                 SELECT COUNT(*)
                 FROM '._DB_PREFIX_.'feature_product fp
@@ -597,7 +627,7 @@ class statscheckup extends Module
 					<th><span class="title_box active">'.$this->trans('Item', array(), 'Admin.Global').'</span></th>
 					<th class="center"><span class="title_box active">'.$this->trans('Active', array(), 'Admin.Global').'</span></th>';
                     $return .= $columnTitle;
-//                    $return .= '<th class="center"><span class="title_box active">'.$this->trans('Global', array(), 'Modules.Statscheckup.Admin').'</span></th>';
+                    $return .= '<th class="center"><span class="title_box active">'.$this->trans('Global', array(), 'Modules.Statscheckup.Admin').'</span></th>';
                 $return .= '</tr>
 			</thead>
 			<tbody>';
@@ -635,7 +665,7 @@ class statscheckup extends Module
                     }
                 }
 
-//                $return .= '<td class="center" >'.$array_colors[$scores['average']].'</td>';
+                $return .= '<td class="center" >'.$array_colors[$scores['average']].'</td>';
             $return .= '</tr>';
         }
 
@@ -649,7 +679,7 @@ class statscheckup extends Module
 					<th colspan="2"></th>
 					<th class="center"><span class="title_box active">'.$this->trans('Active', array(), 'Admin.Global').'</span></th>';
                     $return .= $columnTitle;
-//					$return .= '<th class="center"><span class="title_box active">'.$this->trans('Global', array(), 'Modules.Statscheckup.Admin').'</span></th>';
+					$return .= '<th class="center"><span class="title_box active">'.$this->trans('Global', array(), 'Modules.Statscheckup.Admin').'</span></th>';
                 $return .= '</tr>
 				<tr>
 					<td colspan="2"></td>
@@ -673,7 +703,7 @@ class statscheckup extends Module
                         }
                     }
 
-//					$return .= '<td class="center">'.$array_colors[$totals['average']].'</td>';
+					$return .= '<td class="center">'.$array_colors[$totals['average']].'</td>';
                 $return .= '</tr>
 			</tfoot>
 		</table></div>';
@@ -701,20 +731,24 @@ class statscheckup extends Module
             'images' => ($row['images'] < Configuration::get('CHECKUP_IMAGES_LT') ? 0 : ($row['images'] > Configuration::get('CHECKUP_IMAGES_GT') ? 2 : 1)),
             'sales' => (($row['sales'] * $prop30 < Configuration::get('CHECKUP_SALES_LT')) ? 0 : (($row['sales'] * $prop30 > Configuration::get('CHECKUP_SALES_GT')) ? 2 : 1)),
             'stock' => (($row['stock'] < Configuration::get('CHECKUP_STOCK_LT')) ? 0 : (($row['stock'] > Configuration::get('CHECKUP_STOCK_GT')) ? 2 : 1)),
+            'features' => ($row['features'] < Configuration::get('CHECKUP_FEATURES_LT') ? 0 : ($row['features'] > Configuration::get('CHECKUP_FEATURES_GT') ? 2 : 1)),
+            'accessory' => ($row['accessory'] < Configuration::get('CHECKUP_ACCESSORY_LT') ? 0 : ($row['accessory'] > Configuration::get('CHECKUP_ACCESSORY_GT') ? 2 : 1)),
+            'carrier' => ($row['carrier'] < Configuration::get('CHECKUP_CARRIER_LT') ? 0 : ($row['carrier'] > Configuration::get('CHECKUP_CARRIER_GT') ? 2 : 1)),
+            
             'reference' => ((bool)$row['reference'] == (bool)Configuration::get('CHECKUP_REFERENCE') ? 2 : 0),
-            'price' => ((bool)(int)$row['price'] == (bool)Configuration::get('CHECKUP_PRICE') ? 2 : 0),
-            'wholesale_price' => ((bool)(int)$row['wholesale_price'] == (bool)Configuration::get('CHECKUP_WHOLESALE_PRICE') ? 2 : 0),
             'brand' => ((bool)$row['brand'] == (bool)Configuration::get('CHECKUP_BRAND') ? 2 : 0),
             'supplier' => ((bool)$row['supplier'] == (bool)Configuration::get('CHECKUP_SUPPLIER') ? 2 : 0),
             'category' => ((bool)$row['category'] == (bool)Configuration::get('CHECKUP_CATEGORY') ? 2 : 0),
-            'features' => ($row['features'] < Configuration::get('CHECKUP_FEATURES_LT') ? 0 : ($row['features'] > Configuration::get('CHECKUP_FEATURES_GT') ? 2 : 1)),
+            'isbn' => ((bool)$row['isbn'] == (bool)Configuration::get('CHECKUP_ISBN') ? 2 : 0),
+            'ean13' => ((bool)$row['ean13'] == (bool)Configuration::get('CHECKUP_EAN13') ? 2 : 0),
+            'upc' => ((bool)$row['upc'] == (bool)Configuration::get('CHECKUP_UPC') ? 2 : 0),
+
+            'price' => ((bool)(int)$row['price'] == (bool)Configuration::get('CHECKUP_PRICE') ? 2 : 0),
+            'wholesale_price' => ((bool)(int)$row['wholesale_price'] == (bool)Configuration::get('CHECKUP_WHOLESALE_PRICE') ? 2 : 0),
             'width' => ((bool)(int)$row['width'] == (bool)Configuration::get('CHECKUP_WIDTH') ? 2 : 0),
             'height' => ((bool)(int)$row['height'] == (bool)Configuration::get('CHECKUP_HEIGHT') ? 2 : 0),
             'depth' => ((bool)(int)$row['depth'] == (bool)Configuration::get('CHECKUP_DEPTH') ? 2 : 0),
             'weight' => ((bool)(int)$row['weight'] == (bool)Configuration::get('CHECKUP_WEIGHT') ? 2 : 0),
-            'isbn' => ((bool)$row['isbn'] == (bool)Configuration::get('CHECKUP_ISBN') ? 2 : 0),
-            'ean13' => ((bool)$row['ean13'] == (bool)Configuration::get('CHECKUP_EAN13') ? 2 : 0),
-            'upc' => ((bool)$row['upc'] == (bool)Configuration::get('CHECKUP_UPC') ? 2 : 0),
         );
 
         $descriptions = $db->executeS('
