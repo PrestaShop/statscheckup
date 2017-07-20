@@ -169,7 +169,7 @@ class statscheckup extends Module
             'active' => 0
         );
 
-        $languages = Language::getLanguages();
+        $languages = $this->getLanguages();
 
         foreach ($languages as $language) {
             foreach ($array_conf as $conf) {
@@ -437,6 +437,16 @@ class statscheckup extends Module
     }
 
     /**
+     * Get languages active
+     *
+     * @return array
+     */
+    private function getLanguages()
+    {
+        return Language::getLanguages(true);
+    }
+
+    /**
      * @return array
      */
     private function getArrayColor()
@@ -508,6 +518,7 @@ class statscheckup extends Module
             '.Product::sqlStock('p', 0).'
             LEFT JOIN '._DB_PREFIX_.'product_lang pl
                 ON (p.id_product = pl.id_product AND pl.id_lang = '.(int)$this->context->language->id.Shop::addSqlRestrictionOnLang('pl').')
+            WHERE state = 1
             ORDER BY '.$order_by;
 
         return $db->executeS($sql);
@@ -627,7 +638,7 @@ class statscheckup extends Module
      */
     private function showColumnTitle($array_conf)
     {
-        $languages = Language::getLanguages();
+        $languages = $this->getLanguages();
 
         $columnTitle = '';
 
@@ -654,7 +665,7 @@ class statscheckup extends Module
 
     private function showResult($result, $array_conf)
     {
-        $languages = Language::getLanguages();
+        $languages = $this->getLanguages();
 
         $token_products = Tools::getAdminToken('AdminProducts'.(int)Tab::getIdFromClassName('AdminProducts').(int)Context::getContext()->employee->id);
 
@@ -718,40 +729,42 @@ class statscheckup extends Module
 
         $this->calcScoresTotals($totals);
 
-        $return .= '
-			<tfoot>
-				<tr>
-					<th colspan="2"></th>
-					<th class="center"><span class="title_box active">'.$this->trans('Active', array(), 'Admin.Global').'</span></th>';
-                    $return .= $columnTitle;
-					$return .= '<th class="center"><span class="title_box active">'.$this->trans('Global', array(), 'Modules.Statscheckup.Admin').'</span></th>';
-                $return .= '</tr>
-				<tr>
-					<td colspan="2"></td>
-					<td class="center">'.$array_colors[$totals['active']].'</td>';
+//        Do not display average total for the moment
+//        $return .= '
+//			<tfoot>
+//				<tr>
+//					<th colspan="2"></th>
+//					<th class="center"><span class="title_box active">'.$this->trans('Active', array(), 'Admin.Global').'</span></th>';
+//                    $return .= $columnTitle;
+//					$return .= '<th class="center"><span class="title_box active">'.$this->trans('Global', array(), 'Modules.Statscheckup.Admin').'</span></th>';
+//                $return .= '</tr>
+//				<tr>
+//					<td colspan="2"></td>
+//					<td class="center">'.$array_colors[$totals['active']].'</td>';
+//
+//                    foreach ($languages as $language) {
+//                        foreach ($array_conf as $conf) {
+//                            if (isset($conf['language'])) {
+//                                $return .= '<td class="center ' . (empty($conf['table']['show']) ? 'hidden' : '') . '" data-showtarget="'.$conf['table']['target'].'">' .
+//                                    $array_colors[$totals[$conf['table']['target'].'_'.$language['iso_code']]] .
+//                                '</td>';
+//                            }
+//                        }
+//                    }
+//
+//                    foreach ($array_conf as $conf) {
+//                        if (!isset($conf['language'])) {
+//                            $return .= '<td class="center ' . (empty($conf['table']['show']) ? 'hidden' : '') . '" data-showtarget="'.$conf['table']['target'].'">' .
+//                                $array_colors[$totals['images']] .
+//                            '</td>';
+//                        }
+//                    }
+//
+//					$return .= '<td class="center">'.$array_colors[$totals['average']].'</td>';
+//                $return .= '</tr>
+//			</tfoot>';
 
-                    foreach ($languages as $language) {
-                        foreach ($array_conf as $conf) {
-                            if (isset($conf['language'])) {
-                                $return .= '<td class="center ' . (empty($conf['table']['show']) ? 'hidden' : '') . '" data-showtarget="'.$conf['table']['target'].'">' .
-                                    $array_colors[$totals[$conf['table']['target'].'_'.$language['iso_code']]] .
-                                '</td>';
-                            }
-                        }
-                    }
-
-                    foreach ($array_conf as $conf) {
-                        if (!isset($conf['language'])) {
-                            $return .= '<td class="center ' . (empty($conf['table']['show']) ? 'hidden' : '') . '" data-showtarget="'.$conf['table']['target'].'">' .
-                                $array_colors[$totals['images']] .
-                            '</td>';
-                        }
-                    }
-
-					$return .= '<td class="center">'.$array_colors[$totals['average']].'</td>';
-                $return .= '</tr>
-			</tfoot>
-		</table></div>';
+		$return .= '</table></div>';
 
         return $return;
     }
