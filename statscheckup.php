@@ -81,6 +81,11 @@ class statscheckup extends Module
             'CHECKUP_ISBN' => true,
             'CHECKUP_EAN13' => true,
             'CHECKUP_UPC' => true,
+            'CHECKUP_BRAND' => true,
+            'CHECKUP_SUPPLIER' => true,
+            'CHECKUP_CATEGORY' => true,
+            'CHECKUP_FEATURES_LT' => 1,
+            'CHECKUP_FEATURES_GT' => 2,
         );
     }
 
@@ -177,7 +182,7 @@ class statscheckup extends Module
     {
         return array(
             'DESCRIPTIONS' => array(
-                'name' => $this->trans('Descriptions', array(), 'Modules.Statscheckup.Admin'),
+                'name' => $this->trans('Description', array(), 'Admin.Catalog.Feature'),
                 'text' => $this->trans('chars (without HTML)', array(), 'Modules.Statscheckup.Admin'),
                 'language' => true,
                 'table' => array(
@@ -188,7 +193,7 @@ class statscheckup extends Module
                 )
             ),
             'SHORT_DESCRIPTIONS' => array(
-                'name' => $this->trans('Short descriptions', array(), 'Modules.Statscheckup.Admin'),
+                'name' => $this->trans('Summary', array(), 'Admin.Catalog.Feature'),
                 'text' => $this->trans('chars (without HTML)', array(), 'Modules.Statscheckup.Admin'),
                 'language' => true,
                 'table' => array(
@@ -199,13 +204,13 @@ class statscheckup extends Module
                 )
             ),
             'IMAGES' => array(
-                'name' => $this->trans('Images', array(), 'Admin.Global'),
-                'text' => $this->trans('images', array(), 'Admin.Global'),
+                'name' => $this->trans('Images', array(), 'Admin.Catalog.Feature'),
+                'text' => $this->trans('images', array(), 'Admin.Catalog.Feature'),
                 'table' => array(
                     'target' => 'images',
-                    'title' => $this->trans('Images', array(), 'Admin.Global'),
+                    'title' => $this->trans('Images', array(), 'Admin.Catalog.Feature'),
                     'countable' => true,
-                    'show' => true,
+//                    'show' => true,
                 )
             ),
             'SALES' => array(
@@ -216,7 +221,7 @@ class statscheckup extends Module
                     'target' => 'sales',
                     'title' => $this->trans('Sales', array(), 'Admin.Global'),
                     'countable' => true,
-                    'show' => true,
+//                    'show' => true,
                 )
             ),
             'STOCK' => array(
@@ -226,90 +231,122 @@ class statscheckup extends Module
                     'target' => 'stock',
                     'title' => $this->trans('Available quantity for sale', array(), 'Admin.Global'),
                     'countable' => true,
-                    'show' => true,
+//                    'show' => true,
                 )
             ),
             'REFERENCE' => array(
                 'type' => 'switch',
-                'name' => $this->trans('Reference', array(), 'Admin.Global'),
+                'name' => $this->trans('Reference', array(), 'Admin.Catalog.Feature'),
                 'table' => array(
                     'target' => 'reference',
-                    'title' => $this->trans('Reference', array(), 'Admin.Global'),
-                    'show' => true,
+                    'title' => $this->trans('Reference', array(), 'Admin.Catalog.Feature'),
+//                    'show' => true,
                 )
             ),
             'PRICE' => array(
                 'type' => 'switch',
-                'name' => $this->trans('Price', array(), 'Admin.Global'),
+                'name' => $this->trans('Price', array(), 'Admin.Catalog.Feature'),
                 'table' => array(
                     'target' => 'price',
-                    'title' => $this->trans('Price', array(), 'Admin.Global'),
-                    'show' => true,
+                    'title' => $this->trans('Price', array(), 'Admin.Catalog.Feature'),
+//                    'show' => true,
                 )
             ),
             'WHOLESALE_PRICE' => array(
                 'type' => 'switch',
-                'name' => $this->trans('Wholesale price', array(), 'Admin.Global'),
+                'name' => $this->trans('Wholesale price', array(), 'Admin.Catalog.Feature'),
                 'table' => array(
                     'target' => 'wholesale_price',
-                    'title' => $this->trans('Wholesale price', array(), 'Admin.Global'),
-                    'show' => true,
+                    'title' => $this->trans('Wholesale price', array(), 'Admin.Catalog.Feature'),
+                )
+            ),
+            'BRAND' => array(
+                'type' => 'switch',
+                'name' => $this->trans('Brand', array(), 'Admin.Catalog.Feature'),
+                'table' => array(
+                    'target' => 'brand',
+                    'title' => $this->trans('Brand', array(), 'Admin.Catalog.Feature'),
+                )
+            ),
+            'SUPPLIER' => array(
+                'type' => 'switch',
+                'name' => $this->trans('Supplier', array(), 'Admin.Global'),
+                'table' => array(
+                    'target' => 'supplier',
+                    'title' => $this->trans('Supplier', array(), 'Admin.Global'),
+                )
+            ),
+            'CATEGORY' => array(
+                'type' => 'switch',
+                'name' => $this->trans('Default category', array(), 'Admin.Catalog.Feature'),
+                'table' => array(
+                    'target' => 'category',
+                    'title' => $this->trans('Default category', array(), 'Admin.Catalog.Feature'),
+                )
+            ),
+            'FEATURES' => array(
+                'name' => $this->trans('Features', array(), 'Admin.Catalog.Feature'),
+                'text' => $this->trans('Features', array(), 'Admin.Catalog.Feature'),
+                'table' => array(
+                    'target' => 'features',
+                    'title' => $this->trans('Features', array(), 'Admin.Catalog.Feature'),
+                    'countable' => true,
                 )
             ),
             'WIDTH' => array(
                 'type' => 'switch',
-                'name' => $this->trans('Width', array(), 'Admin.Global'),
+                'name' => $this->trans('Width', array(), 'Admin.Catalog.Feature'),
                 'table' => array(
                     'target' => 'width',
-                    'title' => $this->trans('Width', array(), 'Admin.Global'),
+                    'title' => $this->trans('Width', array(), 'Admin.Catalog.Feature'),
                 )
             ),
             'HEIGHT' => array(
                 'type' => 'switch',
-                'name' => $this->trans('Height', array(), 'Admin.Global'),
+                'name' => $this->trans('Height', array(), 'Admin.Catalog.Feature'),
                 'table' => array(
                     'target' => 'height',
-                    'title' => $this->trans('Height', array(), 'Admin.Global'),
+                    'title' => $this->trans('Height', array(), 'Admin.Catalog.Feature'),
                 )
             ),
             'DEPTH' => array(
                 'type' => 'switch',
-                'name' => $this->trans('Depth', array(), 'Admin.Global'),
+                'name' => $this->trans('Depth', array(), 'Admin.Catalog.Feature'),
                 'table' => array(
                     'target' => 'depth',
-                    'title' => $this->trans('Depth', array(), 'Admin.Global'),
+                    'title' => $this->trans('Depth', array(), 'Admin.Catalog.Feature'),
                 )
             ),
             'WEIGHT' => array(
                 'type' => 'switch',
-                'name' => $this->trans('Weight', array(), 'Admin.Global'),
+                'name' => $this->trans('Weight', array(), 'Admin.Catalog.Feature'),
                 'table' => array(
                     'target' => 'weight',
-                    'title' => $this->trans('Weight', array(), 'Admin.Global'),
+                    'title' => $this->trans('Weight', array(), 'Admin.Catalog.Feature'),
                 )
             ),
             'ISBN' => array(
                 'type' => 'switch',
-                'name' => $this->trans('ISBN', array(), 'Admin.Global'),
+                'name' => $this->trans('ISBN', array(), 'Admin.Catalog.Feature'),
                 'table' => array(
                     'target' => 'isbn',
-                    'title' => $this->trans('ISBN', array(), 'Admin.Global'),
+                    'title' => $this->trans('ISBN', array(), 'Admin.Catalog.Feature'),
                 )
             ),
             'EAN13' => array(
                 'type' => 'switch',
-                'name' => $this->trans('EAN 13', array(), 'Admin.Global'),
+                'name' => $this->trans('EAN 13', array(), 'Admin.Catalog.Feature'),
                 'table' => array(
                     'target' => 'ean13',
-                    'title' => $this->trans('EAN 13', array(), 'Admin.Global'),
+                    'title' => $this->trans('EAN 13', array(), 'Admin.Catalog.Feature'),
                 )
             ),
             'UPC' => array(
                 'type' => 'switch',
-                'name' => $this->trans('UPC', array(), 'Admin.Global'),
+                'name' => $this->trans('UPC', array(), 'Admin.Catalog.Feature'),
                 'table' => array(
                     'target' => 'upc',
-                    'title' => $this->trans('UPC', array(), 'Admin.Global'),
+                    'title' => $this->trans('UPC', array(), 'Admin.Catalog.Feature'),
                 )
             ),
         );
@@ -342,14 +379,21 @@ class statscheckup extends Module
         }
 
         $sql = 'SELECT p.id_product, p.reference, product_shop.active, pl.name, 
-          p.price, p.wholesale_price, p.width, p.height, p.depth, p.weight, 
-          p.isbn, p.ean13, p.upc,
-          (
+            p.price, p.wholesale_price, p.width, p.height, p.depth, p.weight, 
+            p.isbn, p.ean13, p.upc,
+            p.id_manufacturer as brand, p.id_supplier as supplier, p.id_category_default as category,
+            (
                 SELECT COUNT(*)
                 FROM '._DB_PREFIX_.'image i
                 '.Shop::addSqlAssociation('image', 'i').'
                 WHERE i.id_product = p.id_product
-            ) as images, (
+            ) as images, 
+            (
+                SELECT COUNT(*)
+                FROM '._DB_PREFIX_.'feature_product fp
+                WHERE fp.id_product = p.id_product
+            ) as features, 
+            (
                 SELECT SUM(od.product_quantity)
                 FROM '._DB_PREFIX_.'orders o
                 LEFT JOIN '._DB_PREFIX_.'order_detail od ON o.id_order = od.id_order
@@ -394,7 +438,7 @@ class statscheckup extends Module
 				<tbody>
 					<tr>
 					    <td>
-					        <i class="' . (empty($translations['table']['show']) ? 'icon-eye-slash' : 'icon-eye') . ' toggle-show pointer" data-target="'.strtolower($conf).'" aria-hidden="true"> </i>
+					        <i class="' . (empty($translations['table']['show']) ? 'icon-eye-slash' : 'icon-eye') . ' toggle-show pointer" data-target="'.$translations['table']['target'].'" aria-hidden="true"> </i>
 						</td>
 						<td>
 							<label class="control-label col-lg-12">'.$translations['name'].'</label>
@@ -634,6 +678,10 @@ class statscheckup extends Module
             'reference' => ((bool)$row['reference'] == (bool)Configuration::get('CHECKUP_REFERENCE') ? 2 : 0),
             'price' => ((bool)(int)$row['price'] == (bool)Configuration::get('CHECKUP_PRICE') ? 2 : 0),
             'wholesale_price' => ((bool)(int)$row['wholesale_price'] == (bool)Configuration::get('CHECKUP_WHOLESALE_PRICE') ? 2 : 0),
+            'brand' => ((bool)$row['brand'] == (bool)Configuration::get('CHECKUP_BRAND') ? 2 : 0),
+            'supplier' => ((bool)$row['supplier'] == (bool)Configuration::get('CHECKUP_SUPPLIER') ? 2 : 0),
+            'category' => ((bool)$row['category'] == (bool)Configuration::get('CHECKUP_CATEGORY') ? 2 : 0),
+            'features' => ($row['features'] < Configuration::get('CHECKUP_FEATURES_LT') ? 0 : ($row['features'] > Configuration::get('CHECKUP_FEATURES_GT') ? 2 : 1)),
             'width' => ((bool)(int)$row['width'] == (bool)Configuration::get('CHECKUP_WIDTH') ? 2 : 0),
             'height' => ((bool)(int)$row['height'] == (bool)Configuration::get('CHECKUP_HEIGHT') ? 2 : 0),
             'depth' => ((bool)(int)$row['depth'] == (bool)Configuration::get('CHECKUP_DEPTH') ? 2 : 0),
