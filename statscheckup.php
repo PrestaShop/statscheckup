@@ -81,9 +81,12 @@ class statscheckup extends Module
             'CHECKUP_CARRIERS_GT' => 1,
             'CHECKUP_FEATURES_LT' => 0,
             'CHECKUP_FEATURES_GT' => 1,
+            'CHECKUP_TAGS_LT' => 0,
+            'CHECKUP_TAGS_GT' => 1,
             'CHECKUP_REFERENCE' => true,
             'CHECKUP_PRICE' => true,
             'CHECKUP_WHOLESALE_PRICE' => true,
+            'CHECKUP_SHIPPING_COST' => true,
             'CHECKUP_WIDTH' => true,
             'CHECKUP_HEIGHT' => true,
             'CHECKUP_DEPTH' => true,
@@ -94,6 +97,8 @@ class statscheckup extends Module
             'CHECKUP_BRAND' => true,
             'CHECKUP_SUPPLIER' => true,
             'CHECKUP_CATEGORY' => true,
+            'CHECKUP_AVAILABLE_ORDER' => true,
+            'CHECKUP_ONLINE_ONLY' => true,
         );
     }
 
@@ -250,6 +255,15 @@ class statscheckup extends Module
                     'countable' => true,
                 )
             ),
+            'TAGS' => array(
+                'name' => $this->trans('Tags', array(), 'Admin.Catalog.Feature'),
+                'text' => $this->trans('Tags', array(), 'Admin.Catalog.Feature'),
+                'table' => array(
+                    'target' => 'tags',
+                    'title' => $this->trans('Tags', array(), 'Admin.Catalog.Feature'),
+                    'countable' => true,
+                )
+            ),
             'ACCESSORY' => array(
                 'name' => $this->trans('Related product', array(), 'Admin.Catalog.Feature'),
                 'text' => $this->trans('Related product', array(), 'Admin.Catalog.Feature'),
@@ -313,6 +327,14 @@ class statscheckup extends Module
                 'table' => array(
                     'target' => 'wholesale_price',
                     'title' => $this->trans('Wholesale price', array(), 'Admin.Catalog.Feature'),
+                )
+            ),
+            'SHIPPING_COST' => array(
+                'type' => 'switch',
+                'name' => $this->trans('Shipping Costs', array(), 'Admin.Orderscustomers.Feature'),
+                'table' => array(
+                    'target' => 'shipping',
+                    'title' => $this->trans('Shipping Costs', array(), 'Admin.Orderscustomers.Feature'),
                 )
             ),
             'BRAND' => array(
@@ -395,6 +417,22 @@ class statscheckup extends Module
                     'title' => $this->trans('UPC', array(), 'Admin.Catalog.Feature'),
                 )
             ),
+            'ONLINE_ONLY' => array(
+                'type' => 'switch',
+                'name' => $this->trans('Online only', array(), 'Shop.Theme.Catalog'),
+                'table' => array(
+                    'target' => 'online_only',
+                    'title' => $this->trans('Online only', array(), 'Shop.Theme.Catalog'),
+                )
+            ),
+            'AVAILABLE_ORDER' => array(
+                'type' => 'switch',
+                'name' => $this->trans('Available for order', array(), 'Admin.Catalog.Feature'),
+                'table' => array(
+                    'target' => 'available_for_order',
+                    'title' => $this->trans('Available for order', array(), 'Admin.Catalog.Feature'),
+                )
+            ),
         );
     }
 
@@ -428,6 +466,8 @@ class statscheckup extends Module
             p.price, p.wholesale_price, p.width, p.height, p.depth, p.weight, 
             p.isbn, p.ean13, p.upc,
             p.id_manufacturer as brand, p.id_supplier as supplier, p.id_category_default as category,
+            p.additional_shipping_cost as shipping,
+            p.online_only, p.available_for_order,
             (
                 SELECT COUNT(*)
                 FROM '._DB_PREFIX_.'image i
@@ -449,6 +489,11 @@ class statscheckup extends Module
                 FROM '._DB_PREFIX_.'feature_product fp
                 WHERE fp.id_product = p.id_product
             ) as features, 
+            (
+                SELECT COUNT(*)
+                FROM '._DB_PREFIX_.'product_tag t
+                WHERE t.id_product = p.id_product
+            ) as tags, 
             (
                 SELECT SUM(od.product_quantity)
                 FROM '._DB_PREFIX_.'orders o
@@ -734,7 +779,8 @@ class statscheckup extends Module
             'features' => ($row['features'] < Configuration::get('CHECKUP_FEATURES_LT') ? 0 : ($row['features'] > Configuration::get('CHECKUP_FEATURES_GT') ? 2 : 1)),
             'accessory' => ($row['accessory'] < Configuration::get('CHECKUP_ACCESSORY_LT') ? 0 : ($row['accessory'] > Configuration::get('CHECKUP_ACCESSORY_GT') ? 2 : 1)),
             'carrier' => ($row['carrier'] < Configuration::get('CHECKUP_CARRIER_LT') ? 0 : ($row['carrier'] > Configuration::get('CHECKUP_CARRIER_GT') ? 2 : 1)),
-            
+            'tags' => ($row['tags'] < Configuration::get('CHECKUP_TAGS_LT') ? 0 : ($row['tags'] > Configuration::get('CHECKUP_TAGS_GT') ? 2 : 1)),
+
             'reference' => ((bool)$row['reference'] == (bool)Configuration::get('CHECKUP_REFERENCE') ? 2 : 0),
             'brand' => ((bool)$row['brand'] == (bool)Configuration::get('CHECKUP_BRAND') ? 2 : 0),
             'supplier' => ((bool)$row['supplier'] == (bool)Configuration::get('CHECKUP_SUPPLIER') ? 2 : 0),
@@ -742,9 +788,12 @@ class statscheckup extends Module
             'isbn' => ((bool)$row['isbn'] == (bool)Configuration::get('CHECKUP_ISBN') ? 2 : 0),
             'ean13' => ((bool)$row['ean13'] == (bool)Configuration::get('CHECKUP_EAN13') ? 2 : 0),
             'upc' => ((bool)$row['upc'] == (bool)Configuration::get('CHECKUP_UPC') ? 2 : 0),
+            'available_for_order' => ((bool)$row['available_for_order'] == (bool)Configuration::get('CHECKUP_AVAILABLE_ORDER') ? 2 : 0),
+            'online_only' => ((bool)$row['online_only'] == (bool)Configuration::get('CHECKUP_ONLINE_ONLY') ? 2 : 0),
 
             'price' => ((bool)(int)$row['price'] == (bool)Configuration::get('CHECKUP_PRICE') ? 2 : 0),
             'wholesale_price' => ((bool)(int)$row['wholesale_price'] == (bool)Configuration::get('CHECKUP_WHOLESALE_PRICE') ? 2 : 0),
+            'shipping' => ((bool)(int)$row['shipping'] == (bool)Configuration::get('CHECKUP_SHIPPING_COST') ? 2 : 0),
             'width' => ((bool)(int)$row['width'] == (bool)Configuration::get('CHECKUP_WIDTH') ? 2 : 0),
             'height' => ((bool)(int)$row['height'] == (bool)Configuration::get('CHECKUP_HEIGHT') ? 2 : 0),
             'depth' => ((bool)(int)$row['depth'] == (bool)Configuration::get('CHECKUP_DEPTH') ? 2 : 0),
