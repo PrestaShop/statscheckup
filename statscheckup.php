@@ -44,7 +44,7 @@ class statscheckup extends Module
 
         $this->displayName = $this->trans('Catalog evaluation', array(), 'Modules.Statscheckup.Admin');
         $this->description = $this->trans('Adds a quick evaluation of your catalog quality to the Stats dashboard.', array(), 'Modules.Statscheckup.Admin');
-        $this->ps_versions_compliancy = array('min' => '1.7.1.0', 'max' => _PS_VERSION_);
+        $this->ps_versions_compliancy = array('min' => '1.7.3.0', 'max' => _PS_VERSION_);
     }
 
     public function install()
@@ -679,7 +679,7 @@ class statscheckup extends Module
                 $array_color = $this->getArrayColorInfo();
 
                 $return .= '<div class="col-lg-8">
-                    <label class="control-label pull-left">'.$this->trans('Evaluation', array(), 'Modules.Statscheckup.Admin').'</label>
+                    <label class="control-label pull-left">'.$this->trans('Filter by', array(), 'Modules.Statscheckup.Admin').'</label>
                     <div class="col-lg-4">
                         <select name="change-filter-type" class="change-filter">';
                             foreach ($array_conf as $conf) {
