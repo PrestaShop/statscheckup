@@ -1,3 +1,7 @@
+#checkup-filters {
+  margin: 20px 0;
+}
+
 tr.grised-td > td {
   background-color: #DDDDDD !important;
 }

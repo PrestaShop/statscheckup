@@ -139,7 +139,7 @@ class statscheckup extends Module
         $this->html = '<div class="panel-heading">'.$this->displayName.'</div>';
         $this->html .= $displayConfirmation;
         $this->html .= $this->showConfigurationForm($array_conf, $array_colors);
-        $this->html .= $this->showOrderForm();
+        $this->html .= $this->showOrderForm($array_conf);
         $this->html .= $this->showResult($result, $array_conf);
 
         return $this->html;
@@ -481,6 +481,27 @@ class statscheckup extends Module
     }
 
     /**
+     * @return array
+     */
+    private function getArrayColorInfo()
+    {
+        return array(
+            0 => array(
+                'image' => '../modules/'.$this->name.'/img/red.png',
+                'text' => $this->trans('Bad', array(), 'Modules.Statscheckup.Admin'),
+            ),
+            1 => array(
+                'image' => '../modules/'.$this->name.'/img/orange.png',
+                'text' => $this->trans('Average', array(), 'Modules.Statscheckup.Admin'),
+            ),
+            2 => array(
+                'image' => '../modules/'.$this->name.'/img/green.png',
+                'text' => $this->trans('Good', array(), 'Modules.Statscheckup.Admin'),
+            ),
+        );
+    }
+
+    /**
      * @return array|false|mysqli_result|null|PDOStatement|resource
      */
     private function getProductStats()
@@ -556,7 +577,7 @@ class statscheckup extends Module
      */
     private function showConfigurationForm($array_conf, $array_colors)
     {
-        $return = '<form action="'.Tools::safeOutput(AdminController::$currentIndex.'&token='.Tools::getValue('token').'&module='.$this->name).'" method="post" class="checkup form-horizontal">
+        $return = '<form action="'.Tools::safeOutput(AdminController::$currentIndex.'&token='.Tools::getValue('token').'&module='.$this->name).'" method="post" class="row checkup form-horizontal">
         <a class="btn btn-default pull-right checkup-configuration" href="#" 
             data-expand="'.$this->trans('Expand All', array(), 'Admin.Actions').'" 
             data-collapse="'.$this->trans('Collapse All', array(), 'Admin.Actions').'">
@@ -637,24 +658,50 @@ class statscheckup extends Module
     /**
      * Show the select to change the order form
      *
+     * @param $array_conf
      * @return string
      */
-    private function showOrderForm()
+    private function showOrderForm($array_conf)
     {
-        return '<form action="'.Tools::safeOutput(AdminController::$currentIndex.'&token='.Tools::getValue('token').'&module='.$this->name).'" method="post" class="form-horizontal alert">
-			<div class="row">
-				<div class="col-lg-12">
-					<label class="control-label pull-left">'.$this->trans('Order by', array(), 'Modules.Statscheckup.Admin').'</label>
-					<div class="col-lg-3">
-						<select name="submitCheckupOrder" onchange="this.form.submit();">
-							<option value="1">'.$this->trans('ID', array(), 'Admin.Global').'</option>
-							<option value="2" '.($this->context->cookie->checkup_order == 2 ? 'selected="selected"' : '').'>'.$this->trans('Name', array(), 'Admin.Global').'</option>
-							<option value="3" '.($this->context->cookie->checkup_order == 3 ? 'selected="selected"' : '').'>'.$this->trans('Sales', array(), 'Admin.Global').'</option>
-						</select>
-					</div>
-				</div>
-			</div>
-		</form>';
+        $return = '<div class="row" id="checkup-filters">
+            <form action="'.Tools::safeOutput(AdminController::$currentIndex.'&token='.Tools::getValue('token').'&module='.$this->name).'" method="post" class="form-horizontal">		
+                <div class="col-lg-4">
+                    <label class="control-label pull-left">'.$this->trans('Order by', array(), 'Admin.Actions').'</label>          
+                    <div class="col-lg-6">
+                        <select name="submitCheckupOrder" onchange="this.form.submit();">
+                            <option value="1">'.$this->trans('ID', array(), 'Admin.Global').'</option>
+                            <option value="2" '.($this->context->cookie->checkup_order == 2 ? 'selected="selected"' : '').'>'.$this->trans('Name', array(), 'Admin.Global').'</option>
+                            <option value="3" '.($this->context->cookie->checkup_order == 3 ? 'selected="selected"' : '').'>'.$this->trans('Sales', array(), 'Admin.Global').'</option>
+                        </select>
+                    </div>
+                </div>';
+
+                $array_color = $this->getArrayColorInfo();
+
+                $return .= '<div class="col-lg-8">
+                    <label class="control-label pull-left">'.$this->trans('Evaluation', array(), 'Modules.Statscheckup.Admin').'</label>
+                    <div class="col-lg-4">
+                        <select name="change-filter-type" class="change-filter">';
+                            foreach ($array_conf as $conf) {
+                                $return .= '<option value="'.$conf['table']['target'].'">'.ucfirst($conf['name']).'</option>';
+                            }
+
+                        $return .= '</select>
+                    </div>
+                    <div class="col-lg-4">
+                        <select name="change-filter-evaluation" class="change-filter">
+                            <option value="-1">'.$this->trans('-- Choose evaluation --', array(), 'Modules.Statscheckup.Admin').'</option>';
+                            foreach ($array_color as $k => $color) {
+                                $return .= '<option value="'.$k.'">'.ucfirst($color['text']).'</option>';
+                            }
+
+                        $return .= '</select>
+                    </div>
+                </div>
+            </form>
+        </div>';
+
+        return $return;
     }
 
     /**
@@ -731,7 +778,10 @@ class statscheckup extends Module
                 foreach ($languages as $language) {
                     foreach ($array_conf as $conf) {
                         if (isset($conf['language'])) {
-                            $return .= '<td class="center ' . (empty($conf['table']['show']) ? 'hidden' : '') . '" data-showtarget="'.$conf['table']['target'].'">' .
+                            $return .= '<td class="center ' . (empty($conf['table']['show']) ? 'hidden' : '') . '"
+                                    data-showtarget="'.$conf['table']['target'].'"
+                                    data-filterevaluation="'.$conf['table']['target'].'-'.$scores[$conf['table']['target'].'_'.$language['iso_code']].'"
+                                >' .
                                 (!empty($conf['table']['countable']) ? (int)$row[$conf['table']['target'].'_'.$language['iso_code']] : '') .
                                 ' ' . $array_colors[$scores[$conf['table']['target'].'_'.$language['iso_code']]] .
                             '</td>';
@@ -741,7 +791,10 @@ class statscheckup extends Module
 
                 foreach ($array_conf as $conf) {
                     if (!isset($conf['language'])) {
-                        $return .= '<td class="center ' . (empty($conf['table']['show']) ? 'hidden' : '') . '" data-showtarget="'.$conf['table']['target'].'">' .
+                        $return .= '<td class="center ' . (empty($conf['table']['show']) ? 'hidden' : '') . '"
+                                data-showtarget="'.$conf['table']['target'].'"
+                                data-filterevaluation="'.$conf['table']['target'].'-'.$scores[$conf['table']['target']].'"
+                            >' .
                             (!empty($conf['table']['countable']) ? (int)$row[$conf['table']['target']] : '') .
                             ' ' . $array_colors[$scores[$conf['table']['target']]] .
                         '</td>';

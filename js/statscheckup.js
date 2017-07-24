@@ -47,6 +47,20 @@ $(document).ready(function() {
     tr.toggleClass('grised-td');
     tr.find('input:not(.toggle-show)').attr('disabled', !$(this).is(':checked'));
 
-    $('[data-showtarget="'+target+'"]').toggleClass('hidden');
+    $('[data-showtarget="' + target + '"]').toggleClass('hidden');
   });
+
+  $('select.change-filter').on('change', function() {
+    let evaluation = $('select.change-filter[name="change-filter-evaluation"]').val();
+    let type = $('select.change-filter[name="change-filter-type"]').val();
+    let typeEvaluation = type + '-' + evaluation;
+
+    if ('-1' === evaluation) {
+      $('table.checkup2 td[data-filterevaluation]').closest('tr').show();
+    } else {
+      $('table.checkup2 td[data-filterevaluation!="' + typeEvaluation + '"]').closest('tr').hide();
+      $('table.checkup2 td[data-filterevaluation="' + typeEvaluation + '"]').closest('tr').show();
+    }
+  });
+
 });
