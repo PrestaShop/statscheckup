@@ -32,6 +32,8 @@ class statscheckup extends Module
 {
     private $html = '';
 
+    private $csvExport = array();
+
     public function __construct()
     {
         $this->name = 'statscheckup';
@@ -488,15 +490,15 @@ class statscheckup extends Module
         return array(
             0 => array(
                 'image' => '../modules/'.$this->name.'/img/red.png',
-                'text' => $this->trans('Bad', array(), 'Modules.Statscheckup.Admin'),
+                'text' => ucfirst($this->trans('Bad', array(), 'Modules.Statscheckup.Admin')),
             ),
             1 => array(
                 'image' => '../modules/'.$this->name.'/img/orange.png',
-                'text' => $this->trans('Average', array(), 'Modules.Statscheckup.Admin'),
+                'text' => ucfirst($this->trans('Average', array(), 'Modules.Statscheckup.Admin')),
             ),
             2 => array(
                 'image' => '../modules/'.$this->name.'/img/green.png',
-                'text' => $this->trans('Good', array(), 'Modules.Statscheckup.Admin'),
+                'text' => ucfirst($this->trans('Good', array(), 'Modules.Statscheckup.Admin')),
             ),
         );
     }
@@ -697,6 +699,11 @@ class statscheckup extends Module
 
                         $return .= '</select>
                     </div>
+                    <div class="col-lg34">
+                        <a class="btn btn-default export-csv pull-right" href="'.Tools::safeOutput($_SERVER['REQUEST_URI']).'&export=1">
+                            <i class="icon-cloud-upload"></i> '.$this->trans('CSV Export', array(), 'Admin.Global').'
+                        </a>
+                    </div>
                 </div>
             </form>
         </div>';
@@ -714,11 +721,24 @@ class statscheckup extends Module
     {
         $languages = $this->getLanguages();
 
-        $columnTitle = '';
+        $columnTitle = '
+            <th><span class="title_box active">'.$this->trans('ID', array(), 'Admin.Global').'</span></th>
+            <th><span class="title_box active">'.$this->trans('Item', array(), 'Admin.Global').'</span></th>
+            <th class="center"><span class="title_box active">'.$this->trans('Active', array(), 'Admin.Global').'</span></th>';
+
+        $this->csvExport['head'] = array(
+            $this->trans('ID', array(), 'Admin.Global'),
+            $this->trans('Item', array(), 'Admin.Global'),
+            $this->trans('Active', array(), 'Admin.Global'),
+        );
 
         foreach ($languages as $language) {
             foreach ($array_conf as $conf) {
                 if (isset($conf['language'])) {
+                    if (!empty($conf['table']['show'])) {
+                        $this->csvExport['head'][] = $conf['table']['title'];
+                    }
+
                     $columnTitle .= '<th class="center ' . (empty($conf['table']['show']) ? 'hidden' : '') . '" data-showtarget="'.$conf['table']['target'].'">
                         <span class="title_box active">'.$conf['table']['title'].' ('.Tools::strtoupper($language['iso_code']).')</span>
                     </th>';
@@ -728,11 +748,19 @@ class statscheckup extends Module
 
         foreach ($array_conf as $conf) {
             if (!isset($conf['language'])) {
+                if (!empty($conf['table']['show'])) {
+                    $this->csvExport['head'][] = $conf['table']['title'];
+                }
+
                 $columnTitle .= '<th class="center ' . (empty($conf['table']['show']) ? 'hidden' : '') . '" data-showtarget="'.$conf['table']['target'].'">
                     <span class="title_box active">'.$conf['table']['title'].'</span>
                 </th>';
             }
         }
+
+        $columnTitle .= '<th class="center"><span class="title_box active">'.$this->trans('Global', array(), 'Modules.Statscheckup.Admin').'</span></th>';
+
+        $this->csvExport['head'][] = $this->trans('Global', array(), 'Modules.Statscheckup.Admin');
 
         return $columnTitle;
     }
@@ -744,6 +772,7 @@ class statscheckup extends Module
         $token_products = Tools::getAdminToken('AdminProducts'.(int)Tab::getIdFromClassName('AdminProducts').(int)Context::getContext()->employee->id);
 
         $array_colors = $this->getArrayColor();
+        $array_colors_info = $this->getArrayColorInfo();
 
         $totals = $this->initTotalsEvaluation($array_conf);
 
@@ -752,13 +781,9 @@ class statscheckup extends Module
         $return = '<div style="overflow-x:auto">
 		<table class="table checkup2">
 			<thead>
-				<tr>
-					<th><span class="title_box active">'.$this->trans('ID', array(), 'Admin.Global').'</span></th>
-					<th><span class="title_box active">'.$this->trans('Item', array(), 'Admin.Global').'</span></th>
-					<th class="center"><span class="title_box active">'.$this->trans('Active', array(), 'Admin.Global').'</span></th>';
-                    $return .= $columnTitle;
-                    $return .= '<th class="center"><span class="title_box active">'.$this->trans('Global', array(), 'Modules.Statscheckup.Admin').'</span></th>';
-                $return .= '</tr>
+				<tr>'.
+                    $columnTitle.'
+				</tr>
 			</thead>
 			<tbody>';
 
@@ -775,9 +800,19 @@ class statscheckup extends Module
                 </td>
                 <td class="center">'.$array_colors[$scores['active']].'</td>';
 
+                $this->csvExport['product-'.$row['id_product']] = array(
+                    $row['id_product'],
+                    $row['name'],
+                    $array_colors_info[$scores['active']]['text'],
+                );
+
                 foreach ($languages as $language) {
                     foreach ($array_conf as $conf) {
                         if (isset($conf['language'])) {
+                            if (!empty($conf['table']['show'])) {
+                                $this->csvExport['product-'.$row['id_product']][] = (!empty($conf['table']['countable']) ? (int)$row[$conf['table']['target'].'_'.$language['iso_code']] . ' - ' : '') . $array_colors_info[$scores[$conf['table']['target'].'_'.$language['iso_code']]]['text'];
+                            }
+
                             $return .= '<td class="center ' . (empty($conf['table']['show']) ? 'hidden' : '') . '"
                                     data-showtarget="'.$conf['table']['target'].'"
                                     data-filterevaluation="'.$conf['table']['target'].'-'.$scores[$conf['table']['target'].'_'.$language['iso_code']].'"
@@ -791,6 +826,10 @@ class statscheckup extends Module
 
                 foreach ($array_conf as $conf) {
                     if (!isset($conf['language'])) {
+                        if (!empty($conf['table']['show'])) {
+                            $this->csvExport['product-'.$row['id_product']][] = (!empty($conf['table']['countable']) ? (int)$row[$conf['table']['target']] . ' - ' : '') . $array_colors_info[$scores[$conf['table']['target']]]['text'];
+                        }
+
                         $return .= '<td class="center ' . (empty($conf['table']['show']) ? 'hidden' : '') . '"
                                 data-showtarget="'.$conf['table']['target'].'"
                                 data-filterevaluation="'.$conf['table']['target'].'-'.$scores[$conf['table']['target']].'"
@@ -803,6 +842,8 @@ class statscheckup extends Module
 
                 $return .= '<td class="center" >'.$array_colors[$scores['average']].'</td>';
             $return .= '</tr>';
+
+            $this->csvExport['product-'.$row['id_product']][] = $array_colors_info[$scores['average']]['text'];
         }
 
         $return .= '</tbody>';
@@ -844,9 +885,35 @@ class statscheckup extends Module
 //                $return .= '</tr>
 //			</tfoot>';
 
-		$return .= '</table></div>';
+		$return .= '</table>
+        </div>';
+
+        if (Tools::isSubmit('export')) {
+            $csv = new CSVCore(array(), 'export-statschekup-'.Tools::displayDate(date('Y-m-d')));
+            $data = $this->getFormatedData($csv);
+            $csv->output($data);
+            $csv->headers();
+            die;
+        }
 
         return $return;
+    }
+
+    /**
+     * Get formated data from array for csv extract
+     *
+     * @param CSVCore $csv
+     * @return array
+     */
+    private function getFormatedData(CSVCore $csv)
+    {
+        $data = array();
+
+        foreach ($this->csvExport as $line) {
+            $data[] = $csv->output($line);
+        }
+
+        return $data;
     }
 
     /**

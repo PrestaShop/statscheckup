@@ -1,5 +1,7 @@
 #checkup-filters {
-  margin: 20px 0;
+  margin: 30px 0;
+  border-top: solid 1px #eee;
+  padding-top: 20px;
 }
 
 tr.grised-td > td {
