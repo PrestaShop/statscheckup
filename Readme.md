@@ -2,7 +2,7 @@
 
 ## About
 
-Adds a quick evaluation of your catalog quality to the Stats dashboard.
+Enrich your stats, give your catalog a quick evaluation to better analyze your activity.
 
 ## Reporting issues
 
