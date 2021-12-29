@@ -36,7 +36,7 @@ class statscheckup extends Module
     {
         $this->name = 'statscheckup';
         $this->tab = 'analytics_stats';
-        $this->version = '2.0.1';
+        $this->version = '2.0.2';
         $this->author = 'PrestaShop';
         $this->need_instance = 0;
 
@@ -64,10 +64,10 @@ class statscheckup extends Module
                 Configuration::updateValue($confname, (int)$confdefault);
             }
         }
-        return (parent::install() && $this->registerHook('AdminStatsModules'));
+        return (parent::install() && $this->registerHook('displayAdminStatsModules'));
     }
 
-    public function hookAdminStatsModules()
+    public function hookDisplayAdminStatsModules()
     {
         if (Tools::isSubmit('submitCheckup')) {
             $confs = array(
