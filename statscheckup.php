@@ -95,7 +95,7 @@ class statscheckup extends Module
             $this->context->cookie->checkup_order = 1;
         }
 
-        $db = Db::getInstance(_PS_USE_SQL_SLAVE_);
+        $db = Db::getInstance((bool) _PS_USE_SQL_SLAVE_);
         $employee = Context::getContext()->employee;
         $prop30 = ((strtotime($employee->stats_date_to . ' 23:59:59') - strtotime($employee->stats_date_from . ' 00:00:00')) / 60 / 60 / 24) / 30;
 
@@ -203,7 +203,7 @@ class statscheckup extends Module
         $this->html .= '</table>
 			<button type="submit" name="submitCheckup" class="btn btn-default pull-right">
 				<i class="icon-save"></i> ' . $this->trans('Save', [], 'Admin.Actions') . '
-			</button> 
+			</button>
 		</form>
 		<form action="' . Tools::safeOutput(AdminController::$currentIndex . '&token=' . Tools::getValue('token') . '&module=' . $this->name) . '" method="post" class="form-horizontal alert">
 			<div class="row">
