@@ -270,7 +270,7 @@ class statscheckup extends Module
             $this->html .= '
 				<tr>
 					<td>' . $row['id_product'] . '</td>
-					<td><a href="' . Tools::safeOutput('index.php?tab=AdminProducts&updateproduct&id_product=' . $row['id_product'] . '&token=' . $token_products) . '">' . Tools::substr($row['name'], 0, 42) . '</a></td>
+					<td><a href="' . Tools::safeOutput('index.php?controller=AdminProducts&updateproduct&id_product=' . $row['id_product'] . '&token=' . $token_products) . '">' . Tools::substr($row['name'], 0, 42) . '</a></td>
 					<td class="center">' . $array_colors[$scores['active']] . '</td>';
             foreach ($languages as $language) {
                 if (isset($row['desclength_' . $language['iso_code']])) {
